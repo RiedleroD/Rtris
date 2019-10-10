@@ -304,18 +304,19 @@ class Board():
 		self.dontlettemout()
 		if self.counter%round(50/(2**(speed/5)))==0:
 			self.gravity()
+		self.repopulate()
 		self.kill_blocks()
 		self.checklns()
 		self.cleanup()
 		if self.counter%3==0:
 			self.keyfunc()
 		self.counter+=1
-		self.repopulate()
 	def kill_blocks(self):
 		for block in self.blocks:
 			if block.alive:
 				for pos in block.get_poss():
-					if self.check_pos([pos[0],pos[1]+1]) in (-1,-2):
+					if self.check_pos([pos[0],pos[1]]) in (-1,-2):
+						block.move(0,-1)
 						block.die()
 						self.dropped+=1
 						break
@@ -362,7 +363,7 @@ class Board():
 		screen.blit(scorefont.render("Level: "+str(speed),True,(255,255,255)),(CENTERx,BOTTOM_SIDE-30))
 
 def get_rect(x=0,y=0,width=1,height=1):
-		return pygame.Rect(x*BLOCK_SIZE,y*BLOCK_SIZE,width*BLOCK_SIZE,height*BLOCK_SIZE)
+		return pygame.Rect(round(x*BLOCK_SIZE),round(y*BLOCK_SIZE),round(width*BLOCK_SIZE),round(height*BLOCK_SIZE))
 
 def draw():
 	screen.fill((0,0,0))
@@ -407,6 +408,7 @@ while running:
 			elif event.key==pygame.K_UP:
 				K_UP=True
 			elif event.key==pygame.K_DOWN:
+				board.counter=1
 				block=board.get_alive()
 				while block.alive:
 					block.move(0,1)
