@@ -4,9 +4,8 @@ from pygame.locals import *
 
 pygame.init()
 pygame.font.init()
-screen=pygame.display.set_mode(pygame.display.list_modes()[0])
+screen=pygame.display.set_mode(pygame.display.list_modes()[0],pygame.FULLSCREEN)
 pygame.display.set_caption("RTris")
-pygame.display.toggle_fullscreen()
 
 BORDER_WIDTH=5
 BLACK=(0,0,0)
@@ -370,9 +369,13 @@ class Board():
 		self.paused=not self.paused
 
 def get_rect(x=0,y=0,width=1,height=1):
-		return pygame.Rect(round(x*BLOCK_SIZE),round(y*BLOCK_SIZE),round(width*BLOCK_SIZE),round(height*BLOCK_SIZE))
+		return pygame.Rect(math.ceil(x*BLOCK_SIZE),math.ceil(y*BLOCK_SIZE),math.ceil(width*BLOCK_SIZE),math.ceil(height*BLOCK_SIZE))
+
+def rectsortkey(rect):
+	return rect[1][0]+rect[1][0]/30
 
 def draw():
+	rects2draw=[]
 	screen.fill((0,0,0))
 	if board.paused:
 		text=scorefont.render("PAUSED",True,(255,255,255))
@@ -388,14 +391,16 @@ def draw():
 				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,1.25+y,1,1))
 			
 		for x,y in upcoming.rects[0]:
-			pygame.draw.rect(screen,upcoming.color,get_rect(12+x*0.5,2+y*0.5,0.5,0.5))
+			rects2draw.append([upcoming.color,get_rect(12+x*0.5,2+y*0.5,0.5,0.5)])
 		del upcoming
 		for block in board.blocks:
 			if block.alive:
 				for x,y in block.get_shadow(board):
-					pygame.draw.rect(screen,(125,125,125),get_rect(x,y,1,1))
+					rects2draw.append([(125,125,125),get_rect(x,y,1,1)])
 			for x,y in block.rects[block.rotation]:
-				pygame.draw.rect(screen,block.color,get_rect(x,y,1,1))
+				rects2draw.append([block.color,get_rect(x,y,1,1)])
+	for color,rect in sorted(rects2draw,key=rectsortkey):
+		pygame.draw.rect(screen,color,rect)
 	pygame.display.flip()
 
 def end(score):
@@ -403,7 +408,6 @@ def end(score):
 	quit()
 
 board=Board()
-board.spawn(2)
 
 running=True
 K_LEFT=False
