@@ -396,7 +396,7 @@ def draw():
 					pygame.draw.rect(board.surface,(125,125,125),(x,y,1,1))
 			for x,y in block.rects[block.rotation]:
 				pygame.draw.rect(board.surface,block.color,(x,y,1,1))
-	screen.blit(pygame.transform.smoothscale(board.surface,(HEIGHT//2,HEIGHT)),(0,0))
+	screen.blit(pygame.transform.scale(board.surface,(HEIGHT//2,HEIGHT)),(0,0))
 	pygame.display.flip()
 
 def end(score):
