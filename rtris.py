@@ -226,6 +226,8 @@ class Board():
 		self.twoln=0
 		self.oneln=0
 		self.score=0
+		self.upcoming=random.randrange(0,7)
+		self.paused=False
 	def checklns(self):
 		lns_count=0
 		for line in range(20):
@@ -273,7 +275,8 @@ class Board():
 				return block
 	def spawn(self,typ:int=None):
 		if typ==None:
-			typ=random.randrange(7)
+			typ=self.upcoming
+			self.upcoming=random.randrange(0,7)
 		block=Block(typ=typ,x=4,y=0)
 		for rect in block.rects[block.rotation]:
 			if self.check_pos(rect)==-1:
@@ -301,16 +304,17 @@ class Board():
 				if allowed:
 					block.rotate(clockwise)
 	def cycle(self,speed:int):
-		self.dontlettemout()
-		if self.counter%round(50/(2**(speed/5)))==0:
-			self.gravity()
-		self.repopulate()
-		self.kill_blocks()
-		self.checklns()
-		self.cleanup()
-		if self.counter%3==0:
-			self.keyfunc()
-		self.counter+=1
+		if not self.paused:
+			self.dontlettemout()
+			if self.counter%round(50/(2**(speed/5)))==0:
+				self.gravity()
+			self.repopulate()
+			self.kill_blocks()
+			self.checklns()
+			self.cleanup()
+			if self.counter%3==0:
+				self.keyfunc()
+			self.counter+=1
 	def kill_blocks(self):
 		for block in self.blocks:
 			if block.alive:
@@ -355,26 +359,43 @@ class Board():
 						del self.blocks[block]
 		except IndexError:
 			pass
-	def draw_score(self):
+	def draw(self):
 		score=self.calcscore()
 		lns=self.tetrisln*4+self.threeln*3+self.twoln*2+self.oneln
 		screen.blit(scorefont.render("Score: "+str(score),True,(255,255,255)),(CENTERx,0))
 		screen.blit(scorefont.render("Lines: "+str(lns),True,(255,255,255)),(CENTERx,CENTERy))
-		screen.blit(scorefont.render("Level: "+str(speed),True,(255,255,255)),(CENTERx,BOTTOM_SIDE-30))
+		screen.blit(scorefont.render("Level: "+str(speed),True,(255,255,255)),(CENTERx,BOTTOM_SIDE-30))		
+		pygame.draw.rect(screen,(100,100,100),get_rect(0,0,10,20))
+	def pause(self):
+		self.paused=not self.paused
 
 def get_rect(x=0,y=0,width=1,height=1):
 		return pygame.Rect(round(x*BLOCK_SIZE),round(y*BLOCK_SIZE),round(width*BLOCK_SIZE),round(height*BLOCK_SIZE))
 
 def draw():
 	screen.fill((0,0,0))
-	board.draw_score()
-	pygame.draw.rect(screen,(100,100,100),get_rect(0,0,10,20))
-	for block in board.blocks:
-		if block.alive:
-			for x,y in block.get_shadow(board):
-				pygame.draw.rect(screen,(125,125,125),get_rect(x,y,1,1))
-		for x,y in block.rects[block.rotation]:
-			pygame.draw.rect(screen,block.color,get_rect(x,y,1,1))
+	if board.paused:
+		text=scorefont.render("PAUSED",True,(255,255,255))
+		screen.blit(text,(CENTERx-text.get_width()//2,CENTERy-text.get_height()//2))
+	else:
+		board.draw()
+		#pygame.draw.rect(screen,(125,125,125),get_rect(11.5,1.5,2.5,2.5))
+		upcoming=Block(typ=board.upcoming,x=0,y=0)
+		for x,y in upcoming.rects[0]:
+			if upcoming.typ==0:
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.5+x,1.5+y,1,1))
+			elif upcoming.typ==6:
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,1.25+y,1,1))
+			
+		for x,y in upcoming.rects[0]:
+			pygame.draw.rect(screen,upcoming.color,get_rect(12+x*0.5,2+y*0.5,0.5,0.5))
+		del upcoming
+		for block in board.blocks:
+			if block.alive:
+				for x,y in block.get_shadow(board):
+					pygame.draw.rect(screen,(125,125,125),get_rect(x,y,1,1))
+			for x,y in block.rects[block.rotation]:
+				pygame.draw.rect(screen,block.color,get_rect(x,y,1,1))
 	pygame.display.flip()
 
 def end(score):
@@ -418,6 +439,8 @@ while running:
 				board.rotate_alive(1)
 			elif event.key==pygame.K_PAGEDOWN:
 				board.rotate_alive(-1)
+			elif event.key==pygame.K_p:
+				board.pause()
 		elif event.type==pygame.KEYUP:
 			if event.key==pygame.K_UP:
 				K_UP=False
