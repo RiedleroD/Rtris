@@ -227,6 +227,7 @@ class Board():
 		self.score=0
 		self.upcoming=random.randrange(0,7)
 		self.paused=False
+		self.surface=pygame.Surface((10,20),pygame.HWSURFACE)
 	def checklns(self):
 		lns_count=0
 		for line in range(20):
@@ -359,23 +360,19 @@ class Board():
 		except IndexError:
 			pass
 	def draw(self):
+		self.surface.fill((100,100,100))
 		score=self.calcscore()
 		lns=self.tetrisln*4+self.threeln*3+self.twoln*2+self.oneln
 		screen.blit(scorefont.render("Score: "+str(score),True,(255,255,255)),(CENTERx,0))
 		screen.blit(scorefont.render("Lines: "+str(lns),True,(255,255,255)),(CENTERx,CENTERy))
-		screen.blit(scorefont.render("Level: "+str(speed),True,(255,255,255)),(CENTERx,BOTTOM_SIDE-30))		
-		pygame.draw.rect(screen,(100,100,100),get_rect(0,0,10,20))
+		screen.blit(scorefont.render("Level: "+str(speed),True,(255,255,255)),(CENTERx,BOTTOM_SIDE-30))
 	def pause(self):
 		self.paused=not self.paused
 
 def get_rect(x=0,y=0,width=1,height=1):
 		return pygame.Rect(math.ceil(x*BLOCK_SIZE),math.ceil(y*BLOCK_SIZE),math.ceil(width*BLOCK_SIZE),math.ceil(height*BLOCK_SIZE))
 
-def rectsortkey(rect):
-	return rect[1][0]+rect[1][0]/30
-
 def draw():
-	rects2draw=[]
 	screen.fill((0,0,0))
 	if board.paused:
 		text=scorefont.render("PAUSED",True,(255,255,255))
@@ -389,18 +386,17 @@ def draw():
 				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.5+x,1.5+y,1,1))
 			elif upcoming.typ==6:
 				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,1.25+y,1,1))
-			
 		for x,y in upcoming.rects[0]:
-			rects2draw.append([upcoming.color,get_rect(12+x*0.5,2+y*0.5,0.5,0.5)])
+			pygame.draw.rect(screen,upcoming.color,get_rect(12+x*0.5,2+y*0.5,0.5,0.5))
 		del upcoming
+		
 		for block in board.blocks:
 			if block.alive:
 				for x,y in block.get_shadow(board):
-					rects2draw.append([(125,125,125),get_rect(x,y,1,1)])
+					pygame.draw.rect(board.surface,(125,125,125),(x,y,1,1))
 			for x,y in block.rects[block.rotation]:
-				rects2draw.append([block.color,get_rect(x,y,1,1)])
-	for color,rect in sorted(rects2draw,key=rectsortkey):
-		pygame.draw.rect(screen,color,rect)
+				pygame.draw.rect(board.surface,block.color,(x,y,1,1))
+	screen.blit(pygame.transform.smoothscale(board.surface,(HEIGHT//2,HEIGHT)),(0,0))
 	pygame.display.flip()
 
 def end(score):
