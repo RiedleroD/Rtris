@@ -384,8 +384,18 @@ def draw():
 		for x,y in upcoming.rects[0]:
 			if upcoming.typ==0:
 				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.5+x,1.5+y,1,1))
+			elif upcoming.typ==1:
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,1.65+y,1,1))
+			elif upcoming.typ==2:
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,1.35+y,1,1))
+			elif upcoming.typ==3:
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11+x,1.25+y,1,1))
+			elif upcoming.typ==4:
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,1.5+y,1,1))
+			elif upcoming.typ==5:
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,1.5+y,1,1))
 			elif upcoming.typ==6:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,1.25+y,1,1))
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,1.35+y,1,1))
 		for x,y in upcoming.rects[0]:
 			pygame.draw.rect(screen,upcoming.color,get_rect(12+x*0.5,2+y*0.5,0.5,0.5))
 		del upcoming
