@@ -419,12 +419,12 @@ def draw(curtain:list=[],headsup:str="",show_upcoming:bool=True):
 					pygame.draw.rect(board.surface,(125,125,125),(x,y,1,1))
 			for x,y in block.rects[block.rotation]:
 				pygame.draw.rect(board.surface,block.color,(x,y,1,1))
-	for line in curtain:
-		pygame.draw.rect(board.surface,(0,0,0),(0,line,10,1))
-	screen.blit(pygame.transform.scale(board.surface,(HEIGHT//2,HEIGHT)),(0,0))
-	if headsup!="" and type(headsup)==str:
-		hutxt=scorefont.render(headsup,True,(255,255,255),(0,0,0))
-		screen.blit(hutxt,(5*BLOCK_SIZE-hutxt.get_width()//2,CENTERy-hutxt.get_height()//2))
+		for line in curtain:
+			pygame.draw.rect(board.surface,(0,0,0),(0,line,10,1))
+		screen.blit(pygame.transform.scale(board.surface,(HEIGHT//2,HEIGHT)),(0,0))
+		if headsup!="" and type(headsup)==str:
+			hutxt=scorefont.render(headsup,True,(255,255,255),(0,0,0))
+			screen.blit(hutxt,(5*BLOCK_SIZE-hutxt.get_width()//2,CENTERy-hutxt.get_height()//2))
 	pygame.display.flip()
 
 def end():
