@@ -285,15 +285,17 @@ class Board():
 	def dontlettemout(self):
 		for block in self.blocks:
 			block.stayin()
-	def move_alive(self,x,y):
+	def move_alive(self,x,y,die_when_stopped:bool=False):
 		for block in self.blocks:
 			if block.alive:
 				allowed=True
 				for rect in block.move_oop(x,y)[block.rotation]:
-					if self.check_pos(rect)==-1:
+					if self.check_pos(rect) not in (1,0):
 						allowed=False
 				if allowed:
 					block.move(x,y)
+				else:
+					block.die()
 	def rotate_alive(self,clockwise:int):
 		for block in self.blocks:
 			if block.alive:
@@ -350,7 +352,7 @@ class Board():
 		return 0
 	def keyfunc(self):
 		if K_UP:
-			self.move_alive(0,1)
+			self.move_alive(0,1,die_when_stopped=True)
 	def cleanup(self):
 		try:
 			for block in range(len(self.blocks)):
@@ -363,9 +365,20 @@ class Board():
 		self.surface.fill((100,100,100))
 		score=self.calcscore()
 		lns=self.tetrisln*4+self.threeln*3+self.twoln*2+self.oneln
-		screen.blit(scorefont.render("Score: "+str(score),True,(255,255,255)),(CENTERx,0))
-		screen.blit(scorefont.render("Lines: "+str(lns),True,(255,255,255)),(CENTERx,CENTERy))
-		screen.blit(scorefont.render("Level: "+str(speed),True,(255,255,255)),(CENTERx,BOTTOM_SIDE-30))
+		scoretxt=scorefont.render("Score: "+str(score),True,(255,255,255))
+		lnstxt=scorefont.render("Lines: "+str(lns),True,(255,255,255))
+		tetristxt=scorefont.render("Tetris': "+str(self.tetrisln),True,(255,255,255))
+		threetxt=scorefont.render("Triples: "+str(self.threeln),True,(255,255,255))
+		twotxt=scorefont.render("Doubles: "+str(self.twoln),True,(255,255,255))
+		onetxt=scorefont.render("Singles: "+str(self.oneln),True,(255,255,255))
+		leveltxt=scorefont.render("Level: "+str(speed),True,(255,255,255))
+		screen.blit(scoretxt,(11*BLOCK_SIZE,3*BLOCK_SIZE))
+		screen.blit(lnstxt,(11*BLOCK_SIZE,4*BLOCK_SIZE))
+		screen.blit(leveltxt,(11*BLOCK_SIZE,5*BLOCK_SIZE))
+		screen.blit(tetristxt,(11*BLOCK_SIZE,6*BLOCK_SIZE))
+		screen.blit(threetxt,(11*BLOCK_SIZE,7*BLOCK_SIZE))
+		screen.blit(twotxt,(11*BLOCK_SIZE,8*BLOCK_SIZE))
+		screen.blit(onetxt,(11*BLOCK_SIZE,9*BLOCK_SIZE))
 	def pause(self):
 		self.paused=not self.paused
 
@@ -383,21 +396,21 @@ def draw():
 		upcoming=Block(typ=board.upcoming,x=0,y=0)
 		for x,y in upcoming.rects[0]:
 			if upcoming.typ==0:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.5+x,1.5+y,1,1))
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.5+x,0.5+y,1,1))
 			elif upcoming.typ==1:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,1.65+y,1,1))
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.65+y,1,1))
 			elif upcoming.typ==2:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,1.35+y,1,1))
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.35+y,1,1))
 			elif upcoming.typ==3:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11+x,1.25+y,1,1))
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11+x,0.25+y,1,1))
 			elif upcoming.typ==4:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,1.5+y,1,1))
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
 			elif upcoming.typ==5:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,1.5+y,1,1))
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
 			elif upcoming.typ==6:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,1.35+y,1,1))
+				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.35+y,1,1))
 		for x,y in upcoming.rects[0]:
-			pygame.draw.rect(screen,upcoming.color,get_rect(12+x*0.5,2+y*0.5,0.5,0.5))
+			pygame.draw.rect(screen,upcoming.color,get_rect(12+x*0.5,1+y*0.5,0.5,0.5))
 		del upcoming
 		
 		for block in board.blocks:
