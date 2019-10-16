@@ -1,6 +1,5 @@
 #!usr/bin/python3
 import os,sys,pygame,pygame.gfxdraw,random,time,math,numpy
-from pygame.locals import *
 
 pygame.init()
 pygame.font.init()
@@ -214,19 +213,20 @@ class Block():
 			raise ValueError("Couldn't find floor")
 
 class Board():
+	counter=1
+	dropped=0
+	harddrop=0
+	tetrisln=0
+	threeln=0
+	twoln=0
+	oneln=0
+	score=0
+	paused=False
+	ended=False
 	def __init__(self):
-		self.blocks=[]
-		self.counter=1
 		self.clock=pygame.time.Clock()
-		self.dropped=0
-		self.harddrop=0
-		self.tetrisln=0
-		self.threeln=0
-		self.twoln=0
-		self.oneln=0
-		self.score=0
+		self.blocks=[]
 		self.upcoming=random.randrange(0,7)
-		self.paused=False
 		self.surface=pygame.Surface((10,20),pygame.HWSURFACE)
 	def checklns(self):
 		lns_count=0
@@ -280,7 +280,7 @@ class Board():
 		block=Block(typ=typ,x=4,y=0)
 		for rect in block.rects[block.rotation]:
 			if self.check_pos(rect)==-1:
-				end()
+				self.ended=True
 		self.blocks.append(block)
 	def dontlettemout(self):
 		for block in self.blocks:
@@ -317,6 +317,10 @@ class Board():
 			if self.counter%3==0:
 				self.keyfunc()
 			self.counter+=1
+		if self.ended:
+			return False
+		else:
+			return True
 	def kill_blocks(self):
 		for block in self.blocks:
 			if block.alive:
@@ -361,7 +365,7 @@ class Board():
 						del self.blocks[block]
 		except IndexError:
 			pass
-	def draw(self):
+	def draw(self,speed:int):
 		self.surface.fill((100,100,100))
 		score=self.calcscore()
 		lns=self.tetrisln*4+self.threeln*3+self.twoln*2+self.oneln
@@ -385,99 +389,106 @@ class Board():
 def get_rect(x:float=0,y:float=0,width:float=1,height:float=1):
 		return pygame.Rect(math.ceil(x*BLOCK_SIZE),math.ceil(y*BLOCK_SIZE),math.ceil(width*BLOCK_SIZE),math.ceil(height*BLOCK_SIZE))
 
-def draw(curtain:list=[],headsup:str="",show_upcoming:bool=True):
-	screen.fill((0,0,0))
-	if board.paused:
-		text=scorefont.render("PAUSED",True,(255,255,255))
-		screen.blit(text,(CENTERx-text.get_width()//2,CENTERy-text.get_height()//2))
-	else:
-		board.draw()
-		#pygame.draw.rect(screen,(125,125,125),get_rect(11.5,1.5,2.5,2.5))
-		if show_upcoming:
-			upcoming=Block(typ=board.upcoming,x=0,y=0)
-			for x,y in upcoming.rects[0]:
-				if upcoming.typ==0:
-					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.5+x,0.5+y,1,1))
-				elif upcoming.typ==1:
-					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.65+y,1,1))
-				elif upcoming.typ==2:
-					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.35+y,1,1))
-				elif upcoming.typ==3:
-					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11+x,0.25+y,1,1))
-				elif upcoming.typ==4:
-					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
-				elif upcoming.typ==5:
-					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
-				elif upcoming.typ==6:
-					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.35+y,1,1))
-			for x,y in upcoming.rects[0]:
-				pygame.draw.rect(screen,upcoming.color,get_rect(12+x*0.5,1+y*0.5,0.5,0.5))
-		
-		for block in board.blocks:
-			if block.alive:
-				for x,y in block.get_shadow(board):
-					pygame.draw.rect(board.surface,(125,125,125),(x,y,1,1))
-			for x,y in block.rects[block.rotation]:
-				pygame.draw.rect(board.surface,block.color,(x,y,1,1))
-		for line in curtain:
-			pygame.draw.rect(board.surface,(0,0,0),(0,line,10,1))
-		screen.blit(pygame.transform.scale(board.surface,(HEIGHT//2,HEIGHT)),(0,0))
-		if headsup!="" and type(headsup)==str:
-			hutxt=scorefont.render(headsup,True,(255,255,255),(0,0,0))
-			screen.blit(hutxt,(5*BLOCK_SIZE-hutxt.get_width()//2,CENTERy-hutxt.get_height()//2))
-	pygame.display.flip()
+class MainGame():
+	running=False
+	speed=0
+	cycle=0
+	def __init__(self):
+		self.board=Board()
+		self.screen=screen
+	def draw(self,curtain:list=[],headsup:str="",show_upcoming:bool=True):
+		self.screen.fill((0,0,0))
+		if self.board.paused:
+			text=scorefont.render("PAUSED",True,(255,255,255))
+			self.screen.blit(text,(CENTERx-text.get_width()//2,CENTERy-text.get_height()//2))
+		else:
+			self.board.draw(self.speed)
+			#pygame.draw.rect(screen,(125,125,125),get_rect(11.5,1.5,2.5,2.5))
+			if show_upcoming:
+				upcoming=Block(typ=self.board.upcoming,x=0,y=0)
+				for x,y in upcoming.rects[0]:
+					if upcoming.typ==0:
+						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.5+x,0.5+y,1,1))
+					elif upcoming.typ==1:
+						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.65+y,1,1))
+					elif upcoming.typ==2:
+						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.35+y,1,1))
+					elif upcoming.typ==3:
+						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11+x,0.25+y,1,1))
+					elif upcoming.typ==4:
+						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
+					elif upcoming.typ==5:
+						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
+					elif upcoming.typ==6:
+						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.35+y,1,1))
+				for x,y in upcoming.rects[0]:
+					pygame.draw.rect(self.screen,upcoming.color,get_rect(12+x*0.5,1+y*0.5,0.5,0.5))
+			
+			for block in self.board.blocks:
+				if block.alive:
+					for x,y in block.get_shadow(self.board):
+						pygame.draw.rect(self.board.surface,(125,125,125),(x,y,1,1))
+				for x,y in block.rects[block.rotation]:
+					pygame.draw.rect(self.board.surface,block.color,(x,y,1,1))
+			for line in curtain:
+				pygame.draw.rect(self.board.surface,(0,0,0),(0,line,10,1))
+			self.screen.blit(pygame.transform.scale(self.board.surface,(HEIGHT//2,HEIGHT)),(0,0))
+			if headsup!="" and type(headsup)==str:
+				hutxt=scorefont.render(headsup,True,(255,255,255),(0,0,0))
+				self.screen.blit(hutxt,(5*BLOCK_SIZE-hutxt.get_width()//2,CENTERy-hutxt.get_height()//2))
+		pygame.display.flip()
+	def end(self):
+		for line in reversed(range(20)):
+			self.draw(curtain=[l for l in range(line,20)],headsup="Game Over",show_upcoming=False)
+			self.board.clock.tick(30)
+		while True:
+			event=pygame.event.wait()
+			if event.type==pygame.KEYDOWN and event.key in (pygame.K_q,pygame.K_RETURN,pygame.K_ESCAPE):
+				break
+	def run(self):
+		global K_UP
+		self.running=True
+		while self.running:
+			self.cycle+=1
+			if self.cycle%3000==0:
+				self.speed+=1
+			for event in pygame.event.get():
+				if event.type==pygame.KEYDOWN:
+					if event.key==pygame.K_q:
+						self.running=False
+					elif event.key==pygame.K_LEFT:
+						self.board.move_alive(-1,0)
+					elif event.key==pygame.K_RIGHT:
+						self.board.move_alive(1,0)
+					elif event.key==pygame.K_UP:
+						K_UP=True
+					elif event.key==pygame.K_DOWN:
+						self.board.counter=1
+						block=self.board.get_alive()
+						while block.alive:
+							block.move(0,1)
+							self.board.kill_blocks()
+						self.board.harddrop+=1
+					elif event.key==pygame.K_PAGEUP:
+						self.board.rotate_alive(1)
+					elif event.key==pygame.K_PAGEDOWN:
+						self.board.rotate_alive(-1)
+					elif event.key==pygame.K_p or event.key==pygame.K_PAUSE:
+						self.board.pause()
+				elif event.type==pygame.KEYUP:
+					if event.key==pygame.K_UP:
+						K_UP=False
+			self.board.cycle(self.speed)
+			self.draw()
+			if self.board.ended:
+				self.end()
+				return
+			self.board.clock.tick(60)
+	def menu(self):
+		self.run()
 
-def end():
-	for line in reversed(range(20)):
-		draw(curtain=[l for l in range(line,20)],headsup="Game Over",show_upcoming=False)
-		board.clock.tick(30)
-	while True:
-		event=pygame.event.wait()
-		if event.type==pygame.KEYDOWN and event.key in (pygame.K_q,pygame.K_RETURN,pygame.K_ESCAPE):
-			quit()
-
-board=Board()
-
-running=True
-K_LEFT=False
 K_UP=False
-K_DOWN=False
-K_RIGHT=False
-K_PAGEDOWN=False
-K_PAGEUP=False
-speed=0
-cycle=0
-while running:
-	cycle+=1
-	if cycle%3000==0:
-		speed+=1
-	for event in pygame.event.get():
-		if event.type==pygame.KEYDOWN:
-			if event.key==pygame.K_q:
-				running=False
-			elif event.key==pygame.K_LEFT:
-				board.move_alive(-1,0)
-			elif event.key==pygame.K_RIGHT:
-				board.move_alive(1,0)
-			elif event.key==pygame.K_UP:
-				K_UP=True
-			elif event.key==pygame.K_DOWN:
-				board.counter=1
-				block=board.get_alive()
-				while block.alive:
-					block.move(0,1)
-					board.kill_blocks()
-				board.harddrop+=1
-			elif event.key==pygame.K_PAGEUP:
-				board.rotate_alive(1)
-			elif event.key==pygame.K_PAGEDOWN:
-				board.rotate_alive(-1)
-			elif event.key==pygame.K_p or event.key==pygame.K_PAUSE:
-				board.pause()
-		elif event.type==pygame.KEYUP:
-			if event.key==pygame.K_UP:
-				K_UP=False
-	board.cycle(speed)
-	draw()
-	board.clock.tick(60)
-	
+
+if __name__=="__main__":
+	game=MainGame()
+	game.menu()
