@@ -22,11 +22,11 @@ CENTERy=HEIGHT//2
 CENTER=[CENTERx,CENTERy]
 BLOCK_SIZE=HEIGHT/20
 
-scorefont=pygame.font.SysFont("Arial",30)
+scorefont=pygame.font.SysFont("Linux Biolinum O,Arial",30)
 
 class Block():
 	alive=True
-	def __init__(self,typ:int=random.randrange(7),x=0,y=0):
+	def __init__(self,typ:int=random.randrange(7),x:int=0,y:int=0):
 		"""
 			 01	01
 		0	0##	##				yellow
@@ -252,7 +252,7 @@ class Board():
 			raise ValueError("lns_count is "+str(lns_count)+", but it can only be 0-4")
 	def calcscore(self):
 		return self.tetrisln*800+self.threeln*500+self.twoln*300+self.oneln*100+self.dropped+self.harddrop
-	def delline(self,line):
+	def delline(self,line:int):
 		for block in self.blocks:
 			if not block.alive:
 				rects2del=[]
@@ -285,7 +285,7 @@ class Board():
 	def dontlettemout(self):
 		for block in self.blocks:
 			block.stayin()
-	def move_alive(self,x,y,die_when_stopped:bool=False):
+	def move_alive(self,x:int,y:int,die_when_stopped:bool=False):
 		for block in self.blocks:
 			if block.alive:
 				allowed=True
@@ -382,7 +382,7 @@ class Board():
 	def pause(self):
 		self.paused=not self.paused
 
-def get_rect(x=0,y=0,width=1,height=1):
+def get_rect(x:float=0,y:float=0,width:float=1,height:float=1):
 		return pygame.Rect(math.ceil(x*BLOCK_SIZE),math.ceil(y*BLOCK_SIZE),math.ceil(width*BLOCK_SIZE),math.ceil(height*BLOCK_SIZE))
 
 def draw(curtain:list=[],headsup:str="",show_upcoming:bool=True):
@@ -412,7 +412,6 @@ def draw(curtain:list=[],headsup:str="",show_upcoming:bool=True):
 					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.35+y,1,1))
 			for x,y in upcoming.rects[0]:
 				pygame.draw.rect(screen,upcoming.color,get_rect(12+x*0.5,1+y*0.5,0.5,0.5))
-			del upcoming
 		
 		for block in board.blocks:
 			if block.alive:
