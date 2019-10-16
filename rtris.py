@@ -280,7 +280,7 @@ class Board():
 		block=Block(typ=typ,x=4,y=0)
 		for rect in block.rects[block.rotation]:
 			if self.check_pos(rect)==-1:
-				end(self.calcscore())
+				end()
 		self.blocks.append(block)
 	def dontlettemout(self):
 		for block in self.blocks:
@@ -385,7 +385,7 @@ class Board():
 def get_rect(x=0,y=0,width=1,height=1):
 		return pygame.Rect(math.ceil(x*BLOCK_SIZE),math.ceil(y*BLOCK_SIZE),math.ceil(width*BLOCK_SIZE),math.ceil(height*BLOCK_SIZE))
 
-def draw():
+def draw(curtain:list=[],headsup:str="",show_upcoming:bool=True):
 	screen.fill((0,0,0))
 	if board.paused:
 		text=scorefont.render("PAUSED",True,(255,255,255))
@@ -393,25 +393,26 @@ def draw():
 	else:
 		board.draw()
 		#pygame.draw.rect(screen,(125,125,125),get_rect(11.5,1.5,2.5,2.5))
-		upcoming=Block(typ=board.upcoming,x=0,y=0)
-		for x,y in upcoming.rects[0]:
-			if upcoming.typ==0:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.5+x,0.5+y,1,1))
-			elif upcoming.typ==1:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.65+y,1,1))
-			elif upcoming.typ==2:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.35+y,1,1))
-			elif upcoming.typ==3:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11+x,0.25+y,1,1))
-			elif upcoming.typ==4:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
-			elif upcoming.typ==5:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
-			elif upcoming.typ==6:
-				pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.35+y,1,1))
-		for x,y in upcoming.rects[0]:
-			pygame.draw.rect(screen,upcoming.color,get_rect(12+x*0.5,1+y*0.5,0.5,0.5))
-		del upcoming
+		if show_upcoming:
+			upcoming=Block(typ=board.upcoming,x=0,y=0)
+			for x,y in upcoming.rects[0]:
+				if upcoming.typ==0:
+					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.5+x,0.5+y,1,1))
+				elif upcoming.typ==1:
+					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.65+y,1,1))
+				elif upcoming.typ==2:
+					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.35+y,1,1))
+				elif upcoming.typ==3:
+					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11+x,0.25+y,1,1))
+				elif upcoming.typ==4:
+					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
+				elif upcoming.typ==5:
+					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
+				elif upcoming.typ==6:
+					pygame.draw.rect(screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.35+y,1,1))
+			for x,y in upcoming.rects[0]:
+				pygame.draw.rect(screen,upcoming.color,get_rect(12+x*0.5,1+y*0.5,0.5,0.5))
+			del upcoming
 		
 		for block in board.blocks:
 			if block.alive:
@@ -419,12 +420,22 @@ def draw():
 					pygame.draw.rect(board.surface,(125,125,125),(x,y,1,1))
 			for x,y in block.rects[block.rotation]:
 				pygame.draw.rect(board.surface,block.color,(x,y,1,1))
+	for line in curtain:
+		pygame.draw.rect(board.surface,(0,0,0),(0,line,10,1))
 	screen.blit(pygame.transform.scale(board.surface,(HEIGHT//2,HEIGHT)),(0,0))
+	if headsup!="" and type(headsup)==str:
+		hutxt=scorefont.render(headsup,True,(255,255,255),(0,0,0))
+		screen.blit(hutxt,(5*BLOCK_SIZE-hutxt.get_width()//2,CENTERy-hutxt.get_height()//2))
 	pygame.display.flip()
 
-def end(score):
-	print("Final Score:",score)
-	quit()
+def end():
+	for line in reversed(range(20)):
+		draw(curtain=[l for l in range(line,20)],headsup="Game Over",show_upcoming=False)
+		board.clock.tick(30)
+	while True:
+		event=pygame.event.wait()
+		if event.type==pygame.KEYDOWN and event.key in (pygame.K_q,pygame.K_RETURN,pygame.K_ESCAPE):
+			quit()
 
 board=Board()
 
@@ -462,7 +473,7 @@ while running:
 				board.rotate_alive(1)
 			elif event.key==pygame.K_PAGEDOWN:
 				board.rotate_alive(-1)
-			elif event.key==pygame.K_p:
+			elif event.key==pygame.K_p or pygame.K_BREAK:
 				board.pause()
 		elif event.type==pygame.KEYUP:
 			if event.key==pygame.K_UP:
