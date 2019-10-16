@@ -294,7 +294,7 @@ class Board():
 						allowed=False
 				if allowed:
 					block.move(x,y)
-				else:
+				elif die_when_stopped:
 					block.die()
 	def rotate_alive(self,clockwise:int):
 		for block in self.blocks:
@@ -472,7 +472,7 @@ while running:
 				board.rotate_alive(1)
 			elif event.key==pygame.K_PAGEDOWN:
 				board.rotate_alive(-1)
-			elif event.key==pygame.K_p or pygame.K_BREAK:
+			elif event.key==pygame.K_p or event.key==pygame.K_PAUSE:
 				board.pause()
 		elif event.type==pygame.KEYUP:
 			if event.key==pygame.K_UP:
