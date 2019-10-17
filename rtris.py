@@ -389,6 +389,23 @@ class Board():
 def get_rect(x:float=0,y:float=0,width:float=1,height:float=1):
 		return pygame.Rect(math.ceil(x*BLOCK_SIZE),math.ceil(y*BLOCK_SIZE),math.ceil(width*BLOCK_SIZE),math.ceil(height*BLOCK_SIZE))
 
+class Button():
+	pressed=False
+	color=(255,255,255)
+	txtcolor=(0,0,0)
+	def __init__(self,x:int=0,y:int=0,width:int=WIDTH//10,height:int=HEIGHT//15,bgcolor:(int,int,int)=(255,255,255),txt:str="",txtcolor:(int,int,int)=(0,0,0),font:pygame.font.Font=scorefont):
+		print(width)
+		self.rect=pygame.Rect(x,y,width,height)
+		self.color=bgcolor
+		self.text=font.render(txt,True,txtcolor)
+		self.surface=pygame.Surface((width,height))
+		self.surface.fill(bgcolor)
+		self.surface.blit(self.text,(self.surface.get_width()//2-self.text.get_width()//2,self.surface.get_height()//2-self.text.get_height()//2))
+	def press(self):
+		self.pressed=True
+	def collideswith(self,pos:[int,int]):
+		return self.rect.collidepoint(pos)
+
 class MainGame():
 	running=False
 	speed=0
@@ -396,46 +413,51 @@ class MainGame():
 	def __init__(self):
 		self.board=Board()
 		self.screen=screen
+		self.buttons={}
 	def draw(self,curtain:list=[],headsup:str="",show_upcoming:bool=True):
 		self.screen.fill((0,0,0))
-		if self.board.paused:
-			text=scorefont.render("PAUSED",True,(255,255,255))
-			self.screen.blit(text,(CENTERx-text.get_width()//2,CENTERy-text.get_height()//2))
+		if self.running:
+			if self.board.paused:
+				text=scorefont.render("PAUSED",True,(255,255,255))
+				self.screen.blit(text,(CENTERx-text.get_width()//2,CENTERy-text.get_height()//2))
+			else:
+				self.board.draw(self.speed)
+				#pygame.draw.rect(screen,(125,125,125),get_rect(11.5,1.5,2.5,2.5))
+				if show_upcoming:
+					upcoming=Block(typ=self.board.upcoming,x=0,y=0)
+					for x,y in upcoming.rects[0]:
+						if upcoming.typ==0:
+							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.5+x,0.5+y,1,1))
+						elif upcoming.typ==1:
+							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.65+y,1,1))
+						elif upcoming.typ==2:
+							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.35+y,1,1))
+						elif upcoming.typ==3:
+							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11+x,0.25+y,1,1))
+						elif upcoming.typ==4:
+							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
+						elif upcoming.typ==5:
+							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
+						elif upcoming.typ==6:
+							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.35+y,1,1))
+					for x,y in upcoming.rects[0]:
+						pygame.draw.rect(self.screen,upcoming.color,get_rect(12+x*0.5,1+y*0.5,0.5,0.5))
+				
+				for block in self.board.blocks:
+					if block.alive:
+						for x,y in block.get_shadow(self.board):
+							pygame.draw.rect(self.board.surface,(125,125,125),(x,y,1,1))
+					for x,y in block.rects[block.rotation]:
+						pygame.draw.rect(self.board.surface,block.color,(x,y,1,1))
+				for line in curtain:
+					pygame.draw.rect(self.board.surface,(0,0,0),(0,line,10,1))
+				self.screen.blit(pygame.transform.scale(self.board.surface,(HEIGHT//2,HEIGHT)),(0,0))
+				if headsup!="" and type(headsup)==str:
+					hutxt=scorefont.render(headsup,True,(255,255,255),(0,0,0))
+					self.screen.blit(hutxt,(5*BLOCK_SIZE-hutxt.get_width()//2,CENTERy-hutxt.get_height()//2))
 		else:
-			self.board.draw(self.speed)
-			#pygame.draw.rect(screen,(125,125,125),get_rect(11.5,1.5,2.5,2.5))
-			if show_upcoming:
-				upcoming=Block(typ=self.board.upcoming,x=0,y=0)
-				for x,y in upcoming.rects[0]:
-					if upcoming.typ==0:
-						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.5+x,0.5+y,1,1))
-					elif upcoming.typ==1:
-						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.65+y,1,1))
-					elif upcoming.typ==2:
-						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.35+y,1,1))
-					elif upcoming.typ==3:
-						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11+x,0.25+y,1,1))
-					elif upcoming.typ==4:
-						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
-					elif upcoming.typ==5:
-						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
-					elif upcoming.typ==6:
-						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.35+y,1,1))
-				for x,y in upcoming.rects[0]:
-					pygame.draw.rect(self.screen,upcoming.color,get_rect(12+x*0.5,1+y*0.5,0.5,0.5))
-			
-			for block in self.board.blocks:
-				if block.alive:
-					for x,y in block.get_shadow(self.board):
-						pygame.draw.rect(self.board.surface,(125,125,125),(x,y,1,1))
-				for x,y in block.rects[block.rotation]:
-					pygame.draw.rect(self.board.surface,block.color,(x,y,1,1))
-			for line in curtain:
-				pygame.draw.rect(self.board.surface,(0,0,0),(0,line,10,1))
-			self.screen.blit(pygame.transform.scale(self.board.surface,(HEIGHT//2,HEIGHT)),(0,0))
-			if headsup!="" and type(headsup)==str:
-				hutxt=scorefont.render(headsup,True,(255,255,255),(0,0,0))
-				self.screen.blit(hutxt,(5*BLOCK_SIZE-hutxt.get_width()//2,CENTERy-hutxt.get_height()//2))
+			for name,button in self.buttons.items():
+				self.screen.blit(button.surface,(CENTERx-button.surface.get_width()//2,CENTERy-button.surface.get_height()//2))
 		pygame.display.flip()
 	def end(self):
 		for line in reversed(range(20)):
@@ -485,7 +507,23 @@ class MainGame():
 				return
 			self.board.clock.tick(60)
 	def menu(self):
-		self.run()
+		self.buttons["start"]=Button(x=CENTERx,y=CENTERy,txt="Start")
+		while True:
+			self.draw()
+			if self.checkbuttons():
+				break
+			if self.buttons["start"].pressed:
+				self.buttons["start"].pressed=False
+				self.run()
+	def checkbuttons(self):
+		for event in pygame.event.get():
+			if event.type==pygame.MOUSEBUTTONUP and event.button==1:
+				for name,button in self.buttons.items():
+					if button.collideswith(event.pos):
+						button.press()
+			elif event.type==pygame.KEYDOWN and event.key==pygame.K_q:
+				return True
+		return False
 
 K_UP=False
 
