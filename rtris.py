@@ -394,7 +394,6 @@ class Button():
 	color=(255,255,255)
 	txtcolor=(0,0,0)
 	def __init__(self,x:int=0,y:int=0,width:int=WIDTH//10,height:int=HEIGHT//15,bgcolor:(int,int,int)=(255,255,255),txt:str="",txtcolor:(int,int,int)=(0,0,0),font:pygame.font.Font=scorefont):
-		print(width)
 		self.color=bgcolor
 		self.text=font.render(txt,True,txtcolor)
 		self.surface=pygame.Surface((width,height))
@@ -508,7 +507,7 @@ class MainGame():
 			self.board.clock.tick(60)
 	def menu(self):
 		self.buttons["start"]=Button(x=CENTERx,y=CENTERy,txt="Start")
-		
+		self.buttons["settings"]=Button(x=CENTERx,y=CENTERy+self.buttons["start"].rect.height*1.1,txt="Settings")
 		while True:
 			self.draw()
 			if self.checkbuttons():
