@@ -395,12 +395,12 @@ class Button():
 	txtcolor=(0,0,0)
 	def __init__(self,x:int=0,y:int=0,width:int=WIDTH//10,height:int=HEIGHT//15,bgcolor:(int,int,int)=(255,255,255),txt:str="",txtcolor:(int,int,int)=(0,0,0),font:pygame.font.Font=scorefont):
 		print(width)
-		self.rect=pygame.Rect(x,y,width,height)
 		self.color=bgcolor
 		self.text=font.render(txt,True,txtcolor)
 		self.surface=pygame.Surface((width,height))
 		self.surface.fill(bgcolor)
 		self.surface.blit(self.text,(self.surface.get_width()//2-self.text.get_width()//2,self.surface.get_height()//2-self.text.get_height()//2))
+		self.rect=pygame.Rect(x-self.surface.get_width()//2,y-self.surface.get_height()//2,width,height)
 	def press(self):
 		self.pressed=True
 	def collideswith(self,pos:[int,int]):
@@ -457,7 +457,7 @@ class MainGame():
 					self.screen.blit(hutxt,(5*BLOCK_SIZE-hutxt.get_width()//2,CENTERy-hutxt.get_height()//2))
 		else:
 			for name,button in self.buttons.items():
-				self.screen.blit(button.surface,(CENTERx-button.surface.get_width()//2,CENTERy-button.surface.get_height()//2))
+				self.screen.blit(button.surface,button.rect)
 		pygame.display.flip()
 	def end(self):
 		for line in reversed(range(20)):
@@ -508,6 +508,7 @@ class MainGame():
 			self.board.clock.tick(60)
 	def menu(self):
 		self.buttons["start"]=Button(x=CENTERx,y=CENTERy,txt="Start")
+		
 		while True:
 			self.draw()
 			if self.checkbuttons():
@@ -524,6 +525,8 @@ class MainGame():
 			elif event.type==pygame.KEYDOWN and event.key==pygame.K_q:
 				return True
 		return False
+
+
 
 K_UP=False
 
