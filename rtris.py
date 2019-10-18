@@ -393,13 +393,26 @@ class Button():
 	pressed=False
 	color=(255,255,255)
 	txtcolor=(0,0,0)
-	def __init__(self,x:int=0,y:int=0,width:int=WIDTH//10,height:int=HEIGHT//15,bgcolor:(int,int,int)=(255,255,255),txt:str="",txtcolor:(int,int,int)=(0,0,0),font:pygame.font.Font=scorefont):
+	def __init__(self,x:int=0,y:int=0,width:int=WIDTH//10,height:int=HEIGHT//15,bgcolor:(int,int,int)=(255,255,255),txt:str="",txtcolor:(int,int,int)=(0,0,0),font:pygame.font.Font=scorefont,posmeth:[int,int]=(0,0)):
 		self.color=bgcolor
 		self.text=font.render(txt,True,txtcolor)
 		self.surface=pygame.Surface((width,height))
 		self.surface.fill(bgcolor)
 		self.surface.blit(self.text,(self.surface.get_width()//2-self.text.get_width()//2,self.surface.get_height()//2-self.text.get_height()//2))
-		self.rect=pygame.Rect(x-self.surface.get_width()//2,y-self.surface.get_height()//2,width,height)
+		self.rect=[None,None]
+		if posmeth[0]==0:
+			self.rect[0]=x-self.surface.get_width()//2
+		elif posmeth[0]==1:
+			self.rect[0]=x
+		elif posmeth[0]==-1:
+			self.rect[0]=x-self.surface.get_width()
+		if posmeth[1]==0:
+			self.rect[1]=y-self.surface.get_height()//2
+		elif posmeth[1]==1:
+			self.rect[1]=y
+		elif posmeth[1]==-1:
+			self.rect[1]=y-self.surface.get_height()
+		self.rect=pygame.Rect(*self.rect,width,height)
 	def press(self):
 		self.pressed=True
 	def collideswith(self,pos:[int,int]):
@@ -515,14 +528,26 @@ class MainGame():
 			if self.buttons["start"].pressed:
 				self.buttons["start"].pressed=False
 				self.run()
+			elif self.buttons["settings"].pressed:
+				self.buttons["settings"].pressed=False
+				self.settings()
+	def settings(self):
+		self.buttons={"back":Button(x=CENTERx,y=BOTTOM_SIDE,txt="Back",posmeth=(0,-1))}
+		while True:
+			self.draw()
+			if self.checkbuttons() or self.buttons["back"].pressed:
+				self.buttons={}
+				self.buttons["start"]=Button(x=CENTERx,y=CENTERy,txt="Start")
+				self.buttons["settings"]=Button(x=CENTERx,y=CENTERy+self.buttons["start"].rect.height*1.1,txt="Settings")
+				break
 	def checkbuttons(self):
-		for event in pygame.event.get():
-			if event.type==pygame.MOUSEBUTTONUP and event.button==1:
-				for name,button in self.buttons.items():
-					if button.collideswith(event.pos):
-						button.press()
-			elif event.type==pygame.KEYDOWN and event.key==pygame.K_q:
-				return True
+		event=pygame.event.wait()
+		if event.type==pygame.MOUSEBUTTONUP and event.button==1:
+			for name,button in self.buttons.items():
+				if button.collideswith(event.pos):
+					button.press()
+		elif event.type==pygame.KEYDOWN and event.key==pygame.K_q:
+			return True
 		return False
 
 
