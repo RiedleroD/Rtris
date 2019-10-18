@@ -406,12 +406,16 @@ class Button():
 			self.rect[0]=x
 		elif posmeth[0]==-1:
 			self.rect[0]=x-self.surface.get_width()
+		else:
+			raise ValueError("Wrong position method (only -1,0,1 are allowed): "+str(posmeth))
 		if posmeth[1]==0:
 			self.rect[1]=y-self.surface.get_height()//2
 		elif posmeth[1]==1:
 			self.rect[1]=y
 		elif posmeth[1]==-1:
 			self.rect[1]=y-self.surface.get_height()
+		else:
+			raise ValueError("Wrong position method (only -1,0,1 are allowed): "+str(posmeth))
 		self.rect=pygame.Rect(*self.rect,width,height)
 	def press(self):
 		self.pressed=True
@@ -423,7 +427,6 @@ class MainGame():
 	speed=0
 	cycle=0
 	def __init__(self):
-		self.board=Board()
 		self.screen=screen
 		self.buttons={}
 	def draw(self,curtain:list=[],headsup:str="",show_upcoming:bool=True):
@@ -475,10 +478,10 @@ class MainGame():
 		for line in reversed(range(20)):
 			self.draw(curtain=[l for l in range(line,20)],headsup="Game Over",show_upcoming=False)
 			self.board.clock.tick(30)
-		while True:
+		while self.running:
 			event=pygame.event.wait()
 			if event.type==pygame.KEYDOWN and event.key in (pygame.K_q,pygame.K_RETURN,pygame.K_ESCAPE):
-				break
+				self.running=False
 	def run(self):
 		global K_UP
 		self.running=True
@@ -516,7 +519,6 @@ class MainGame():
 			self.draw()
 			if self.board.ended:
 				self.end()
-				return
 			self.board.clock.tick(60)
 	def menu(self):
 		self.buttons["start"]=Button(x=CENTERx,y=CENTERy,txt="Start")
@@ -527,6 +529,7 @@ class MainGame():
 				break
 			if self.buttons["start"].pressed:
 				self.buttons["start"].pressed=False
+				self.board=Board()
 				self.run()
 			elif self.buttons["settings"].pressed:
 				self.buttons["settings"].pressed=False
