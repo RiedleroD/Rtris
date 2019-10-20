@@ -1,6 +1,6 @@
 #!usr/bin/python3
 # coding: utf-8
-import os,random,math
+import os,random,math,json
 from numpy import add as np_add
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame,pygame.freetype
@@ -673,17 +673,24 @@ class MainGame():
 
 
 K_DROP=False
-
-strg={
-"left":pygame.K_LEFT,
-"right":pygame.K_RIGHT,
-"drop":pygame.K_UP,
-"idrop":pygame.K_DOWN,
-"rot":pygame.K_PAGEUP,
-"rot1":pygame.K_PAGEDOWN,
-"exit":pygame.K_ESCAPE,
-"pause":pygame.K_p}
+confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
 
 if __name__=="__main__":
+	if not os.path.exists(confpath):
+		strg={"left":pygame.K_LEFT,
+			"right":pygame.K_RIGHT,
+			"drop":pygame.K_UP,
+			"idrop":pygame.K_DOWN,
+			"rot":pygame.K_PAGEUP,
+			"rot1":pygame.K_PAGEDOWN,
+			"exit":pygame.K_ESCAPE,
+			"pause":pygame.K_p}
+		with open(confpath,"w") as conf:
+			json.dump(strg,conf,ensure_ascii=False)
+	else:
+		with open(confpath,"r") as conf:
+			strg=json.load(conf)
 	game=MainGame()
 	game.menu()
+	with open(confpath,"w") as conf:
+		json.dump(strg,conf,ensure_ascii=False)
