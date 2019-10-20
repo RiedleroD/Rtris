@@ -1,8 +1,9 @@
 #!usr/bin/python3
-import os,sys,pygame,pygame.gfxdraw,random,time,math,numpy
+# coding: utf-8
+import os,sys,pygame,pygame.gfxdraw,random,time,math,numpy,pygame.freetype
 
 pygame.init()
-pygame.font.init()
+pygame.freetype.init()
 screen=pygame.display.set_mode(pygame.display.list_modes()[0],pygame.FULLSCREEN)
 pygame.display.set_caption("RTris")
 
@@ -21,7 +22,7 @@ CENTERy=HEIGHT//2
 CENTER=[CENTERx,CENTERy]
 BLOCK_SIZE=HEIGHT/20
 
-scorefont=pygame.font.SysFont("Linux Biolinum O,Arial",30)
+scorefont=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",30)
 
 class Block():
 	alive=True
@@ -331,7 +332,7 @@ class Board():
 						self.dropped+=1
 						break
 	def gravity(self):
-		if K_UP:
+		if K_DROP:
 			return
 		for block in self.blocks:
 			if block.alive:
@@ -355,7 +356,7 @@ class Board():
 						return -1
 		return 0
 	def keyfunc(self):
-		if K_UP:
+		if K_DROP:
 			self.move_alive(0,1,die_when_stopped=True)
 	def cleanup(self):
 		try:
@@ -369,13 +370,13 @@ class Board():
 		self.surface.fill((100,100,100))
 		score=self.calcscore()
 		lns=self.tetrisln*4+self.threeln*3+self.twoln*2+self.oneln
-		scoretxt=scorefont.render("Score: "+str(score),True,(255,255,255))
-		lnstxt=scorefont.render("Lines: "+str(lns),True,(255,255,255))
-		tetristxt=scorefont.render("Tetris': "+str(self.tetrisln),True,(255,255,255))
-		threetxt=scorefont.render("Triples: "+str(self.threeln),True,(255,255,255))
-		twotxt=scorefont.render("Doubles: "+str(self.twoln),True,(255,255,255))
-		onetxt=scorefont.render("Singles: "+str(self.oneln),True,(255,255,255))
-		leveltxt=scorefont.render("Level: "+str(speed),True,(255,255,255))
+		scoretxt=scorefont.render("Score: "+str(score),(255,255,255))[0]
+		lnstxt=scorefont.render("Lines: "+str(lns),(255,255,255))[0]
+		tetristxt=scorefont.render("Tetris': "+str(self.tetrisln),(255,255,255))[0]
+		threetxt=scorefont.render("Triples: "+str(self.threeln),(255,255,255))[0]
+		twotxt=scorefont.render("Doubles: "+str(self.twoln),(255,255,255))[0]
+		onetxt=scorefont.render("Singles: "+str(self.oneln),(255,255,255))[0]
+		leveltxt=scorefont.render("Level: "+str(speed),(255,255,255))[0]
 		screen.blit(scoretxt,(11*BLOCK_SIZE,3*BLOCK_SIZE))
 		screen.blit(lnstxt,(11*BLOCK_SIZE,4*BLOCK_SIZE))
 		screen.blit(leveltxt,(11*BLOCK_SIZE,5*BLOCK_SIZE))
@@ -391,14 +392,20 @@ def get_rect(x:float=0,y:float=0,width:float=1,height:float=1):
 
 class Button():
 	pressed=False
-	color=(255,255,255)
-	txtcolor=(0,0,0)
-	def __init__(self,x:int=0,y:int=0,width:int=WIDTH//10,height:int=HEIGHT//15,bgcolor:(int,int,int)=(255,255,255),txt:str="",txtcolor:(int,int,int)=(0,0,0),font:pygame.font.Font=scorefont,posmeth:[int,int]=(0,0)):
-		self.color=bgcolor
-		self.text=font.render(txt,True,txtcolor)
+	bgcolor=(255,255,255)
+	color=(0,0,0)
+	txt="Button"
+	def __init__(self,x:int=0,y:int=0,width:int=WIDTH//10,height:int=HEIGHT//15,bgcolor:(int,int,int)=(255,255,255),txt:str="Button",txtcolor:(int,int,int)=(0,0,0),font:pygame.freetype.Font=scorefont,posmeth:[int,int]=(0,0)):
+		self.bgcolor=bgcolor
+		self.color=txtcolor
+		self.txt=txt
+		self.width=width
+		self.height=height
+		self.font=font
+		text=font.render(txt,txtcolor)[0]
 		self.surface=pygame.Surface((width,height))
 		self.surface.fill(bgcolor)
-		self.surface.blit(self.text,(self.surface.get_width()//2-self.text.get_width()//2,self.surface.get_height()//2-self.text.get_height()//2))
+		self.surface.blit(text,(width//2-text.get_width()//2,height//2-text.get_height()//2))
 		self.rect=[None,None]
 		if posmeth[0]==0:
 			self.rect[0]=x-self.surface.get_width()//2
@@ -419,8 +426,13 @@ class Button():
 		self.rect=pygame.Rect(*self.rect,width,height)
 	def press(self):
 		self.pressed=True
-	def collideswith(self,pos:[int,int]):
+	def collideswith(self,pos:[int,int])	-> bool:
 		return self.rect.collidepoint(pos)
+	def render(self)	->	pygame.Surface:
+		text=self.font.render(self.txt,self.color)[0]
+		self.surface.fill(self.bgcolor)
+		self.surface.blit(text,(self.surface.get_width()//2-text.get_width()//2,self.surface.get_height()//2-text.get_height()//2))
+		return self.surface
 
 class MainGame():
 	running=False
@@ -468,7 +480,7 @@ class MainGame():
 					pygame.draw.rect(self.board.surface,(0,0,0),(0,line,10,1))
 				self.screen.blit(pygame.transform.scale(self.board.surface,(HEIGHT//2,HEIGHT)),(0,0))
 				if headsup!="" and type(headsup)==str:
-					hutxt=scorefont.render(headsup,True,(255,255,255),(0,0,0))
+					hutxt=scorefont.render(headsup,(255,255,255),(0,0,0))[0]
 					self.screen.blit(hutxt,(5*BLOCK_SIZE-hutxt.get_width()//2,CENTERy-hutxt.get_height()//2))
 		else:
 			for name,button in self.buttons.items():
@@ -480,10 +492,10 @@ class MainGame():
 			self.board.clock.tick(30)
 		while self.running:
 			event=pygame.event.wait()
-			if event.type==pygame.KEYDOWN and event.key in (pygame.K_q,pygame.K_RETURN,pygame.K_ESCAPE):
+			if event.type==pygame.KEYDOWN and event.key in (strg["exit"],pygame.K_RETURN):
 				self.running=False
 	def run(self):
-		global K_UP
+		global K_DROP
 		self.running=True
 		while self.running:
 			self.cycle+=1
@@ -491,38 +503,40 @@ class MainGame():
 				self.speed+=1
 			for event in pygame.event.get():
 				if event.type==pygame.KEYDOWN:
-					if event.key==pygame.K_q:
+					if event.key==strg["exit"]:
 						self.running=False
-					elif event.key==pygame.K_LEFT:
+					elif event.key==strg["left"]:
 						self.board.move_alive(-1,0)
-					elif event.key==pygame.K_RIGHT:
+					elif event.key==strg["right"]:
 						self.board.move_alive(1,0)
-					elif event.key==pygame.K_UP:
-						K_UP=True
-					elif event.key==pygame.K_DOWN:
+					elif event.key==strg["drop"]:
+						K_DROP=True
+					elif event.key==strg["idrop"]:
 						self.board.counter=1
 						block=self.board.get_alive()
 						while block.alive:
 							block.move(0,1)
 							self.board.kill_blocks()
 						self.board.harddrop+=1
-					elif event.key==pygame.K_PAGEUP:
+					elif event.key==strg["rot"]:
 						self.board.rotate_alive(1)
-					elif event.key==pygame.K_PAGEDOWN:
+					elif event.key==strg["rot1"]:
 						self.board.rotate_alive(-1)
-					elif event.key==pygame.K_p or event.key==pygame.K_PAUSE:
+					elif event.key==strg["pause"] or event.key==pygame.K_PAUSE:
 						self.board.pause()
 				elif event.type==pygame.KEYUP:
-					if event.key==pygame.K_UP:
-						K_UP=False
+					if event.key==strg["drop"]:
+						K_DROP=False
 			self.board.cycle(self.speed)
 			self.draw()
 			if self.board.ended:
 				self.end()
 			self.board.clock.tick(60)
 	def menu(self):
-		self.buttons["start"]=Button(x=CENTERx,y=CENTERy,txt="Start")
-		self.buttons["settings"]=Button(x=CENTERx,y=CENTERy+self.buttons["start"].rect.height*1.1,txt="Settings")
+		self.buttons={}
+		self.buttons["settings"]=Button(x=CENTERx,y=CENTERy,txt="Settings")
+		self.buttons["start"]=Button(x=CENTERx,y=self.buttons["settings"].rect.top-10,txt="Start",posmeth=(0,-1))
+		self.buttons["quit"]=Button(x=CENTERx,y=self.buttons["settings"].rect.bottom+10,txt="Quit",posmeth=(0,1))
 		while True:
 			self.draw()
 			if self.checkbuttons():
@@ -534,28 +548,138 @@ class MainGame():
 			elif self.buttons["settings"].pressed:
 				self.buttons["settings"].pressed=False
 				self.settings()
+				self.buttons={}
+				self.buttons["settings"]=Button(x=CENTERx,y=CENTERy,txt="Settings")
+				self.buttons["start"]=Button(x=CENTERx,y=self.buttons["settings"].rect.top-10,txt="Start",posmeth=(0,-1))
+				self.buttons["quit"]=Button(x=CENTERx,y=self.buttons["settings"].rect.bottom+10,txt="Quit",posmeth=(0,1))	
+			elif self.buttons["quit"].pressed:
+				self.buttons["quit"].pressed=False
+				break
 	def settings(self):
-		self.buttons={"back":Button(x=CENTERx,y=BOTTOM_SIDE,txt="Back",posmeth=(0,-1))}
+		self.buttons={
+			"back":Button(x=CENTERx,y=BOTTOM_SIDE,txt="Back",posmeth=(0,-1)),
+			"strgleft":Button(x=LEFT_SIDE,y=TOP_SIDE,txt="Left",posmeth=(1,1))}
+		self.buttons["strgright"]=Button(x=LEFT_SIDE,y=self.buttons["strgleft"].rect.bottom+10,txt="Right",posmeth=(1,1))
+		self.buttons["strgdrop"]=Button(x=LEFT_SIDE,y=self.buttons["strgright"].rect.bottom+10,txt="Drop",posmeth=(1,1))
+		self.buttons["strgidrop"]=Button(x=LEFT_SIDE,y=self.buttons["strgdrop"].rect.bottom+10,txt="Inst. Drop",posmeth=(1,1))
+		self.buttons["strgrot"]=Button(x=LEFT_SIDE,y=self.buttons["strgidrop"].rect.bottom+10,txt="Rotate \u21c0",posmeth=(1,1))
+		self.buttons["strgrot1"]=Button(x=LEFT_SIDE,y=self.buttons["strgrot"].rect.bottom+10,txt="Rotate \u21bc",posmeth=(1,1))
+		self.buttons["strgexit"]=Button(x=LEFT_SIDE,y=self.buttons["strgrot1"].rect.bottom+10,txt="Exit/Back",posmeth=(1,1))
+		self.buttons["strgpause"]=Button(x=LEFT_SIDE,y=self.buttons["strgexit"].rect.bottom+10,txt="Pause",posmeth=(1,1))
 		while True:
 			self.draw()
 			if self.checkbuttons() or self.buttons["back"].pressed:
-				self.buttons={}
-				self.buttons["start"]=Button(x=CENTERx,y=CENTERy,txt="Start")
-				self.buttons["settings"]=Button(x=CENTERx,y=CENTERy+self.buttons["start"].rect.height*1.1,txt="Settings")
 				break
+			if self.buttons["strgleft"].pressed:
+				self.buttons["strgleft"].txt="["+pygame.key.name(strg["left"])+"]"
+				self.buttons["strgleft"].render()
+				self.draw()
+				button=self.wait4buttonpress()
+				if button!=None:
+					strg["left"]=button.key
+				self.buttons["strgleft"].pressed=False
+				self.buttons["strgleft"].txt="Left"
+				self.buttons["strgleft"].render()
+			elif self.buttons["strgright"].pressed:
+				self.buttons["strgright"].txt="["+pygame.key.name(strg["right"])+"]"
+				self.buttons["strgright"].render()
+				self.draw()
+				button=self.wait4buttonpress()
+				if button!=None:
+					strg["right"]=button.key
+				self.buttons["strgright"].pressed=False
+				self.buttons["strgright"].txt="Right"
+				self.buttons["strgright"].render()
+			elif self.buttons["strgdrop"].pressed:
+				self.buttons["strgdrop"].txt="["+pygame.key.name(strg["drop"])+"]"
+				self.buttons["strgdrop"].render()
+				self.draw()
+				button=self.wait4buttonpress()
+				if button!=None:
+					strg["drop"]=button.key
+				self.buttons["strgdrop"].pressed=False
+				self.buttons["strgdrop"].txt="Drop"
+				self.buttons["strgdrop"].render()
+			elif self.buttons["strgidrop"].pressed:
+				self.buttons["strgidrop"].txt="["+pygame.key.name(strg["idrop"])+"]"
+				self.buttons["strgidrop"].render()
+				self.draw()
+				button=self.wait4buttonpress()
+				if button!=None:
+					strg["idrop"]=button.key
+				self.buttons["strgidrop"].pressed=False
+				self.buttons["strgidrop"].txt="Inst. Drop"
+				self.buttons["strgidrop"].render()
+			elif self.buttons["strgrot"].pressed:
+				self.buttons["strgrot"].txt="["+pygame.key.name(strg["rot"])+"]"
+				self.buttons["strgrot"].render()
+				self.draw()
+				button=self.wait4buttonpress()
+				if button!=None:
+					strg["rot"]=button.key
+				self.buttons["strgrot"].pressed=False
+				self.buttons["strgrot"].txt="Rotate \u21c0"
+				self.buttons["strgrot"].render()
+			elif self.buttons["strgrot1"].pressed:
+				self.buttons["strgrot1"].txt="["+pygame.key.name(strg["rot1"])+"]"
+				self.buttons["strgrot1"].render()
+				self.draw()
+				button=self.wait4buttonpress()
+				if button!=None:
+					strg["rot1"]=button.key
+				self.buttons["strgrot1"].pressed=False
+				self.buttons["strgrot1"].txt="Rotate \u21bc"
+				self.buttons["strgrot1"].render()
+			elif self.buttons["strgexit"].pressed:
+				self.buttons["strgexit"].txt="["+pygame.key.name(strg["exit"])+"]"
+				self.buttons["strgexit"].render()
+				self.draw()
+				button=self.wait4buttonpress()
+				if button!=None:
+					strg["exit"]=button.key
+				self.buttons["strgexit"].pressed=False
+				self.buttons["strgexit"].txt="Exit/Back"
+				self.buttons["strgexit"].render()
+			elif self.buttons["strgpause"].pressed:
+				self.buttons["strgpause"].txt="["+pygame.key.name(strg["pause"])+"]"
+				self.buttons["strgpause"].render()
+				self.draw()
+				button=self.wait4buttonpress()
+				if button!=None:
+					strg["pause"]=button.key
+				self.buttons["strgpause"].pressed=False
+				self.buttons["strgpause"].txt="Pause"
+				self.buttons["strgpause"].render()
+	def wait4buttonpress(self):
+		while True:
+			event=pygame.event.wait()
+			if event.type==pygame.KEYDOWN:
+				return event
+			elif event.type==pygame.MOUSEBUTTONDOWN:
+				return None
 	def checkbuttons(self):
 		event=pygame.event.wait()
 		if event.type==pygame.MOUSEBUTTONUP and event.button==1:
 			for name,button in self.buttons.items():
 				if button.collideswith(event.pos):
 					button.press()
-		elif event.type==pygame.KEYDOWN and event.key==pygame.K_q:
+		elif event.type==pygame.KEYDOWN and event.key==strg["exit"]:
 			return True
 		return False
 
 
 
-K_UP=False
+K_DROP=False
+
+strg={
+"left":pygame.K_LEFT,
+"right":pygame.K_RIGHT,
+"drop":pygame.K_UP,
+"idrop":pygame.K_DOWN,
+"rot":pygame.K_PAGEUP,
+"rot1":pygame.K_PAGEDOWN,
+"exit":pygame.K_ESCAPE,
+"pause":pygame.K_p}
 
 if __name__=="__main__":
 	game=MainGame()
