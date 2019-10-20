@@ -1,6 +1,7 @@
 #!usr/bin/python3
 # coding: utf-8
-import os,sys,random,time,math,numpy
+import os,sys,random,time,math
+from numpy import add as np_add
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame,pygame.freetype
 
@@ -157,7 +158,7 @@ class Block():
 			[[x,y],[x,y],[x,y],[x,y]],
 			[[x,y],[x,y],[x,y],[x,y]],
 			[[x,y],[x,y],[x,y],[x,y]]]
-		return numpy.add(omat,matrix).tolist()
+		return np_add(omat,matrix).tolist()
 	def get_poss(self):
 		return self.rects[self.rotation]
 	def get_posxs(self):
