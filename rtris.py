@@ -1,6 +1,6 @@
 #!usr/bin/python3
 # coding: utf-8
-import os,sys,random,time,math
+import os,random,math
 from numpy import add as np_add
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame,pygame.freetype
