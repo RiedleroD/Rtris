@@ -1,6 +1,8 @@
 #!usr/bin/python3
 # coding: utf-8
-import os,sys,pygame,pygame.gfxdraw,random,time,math,numpy,pygame.freetype
+import os,sys,random,time,math,numpy
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import pygame,pygame.freetype
 
 pygame.init()
 pygame.freetype.init()
