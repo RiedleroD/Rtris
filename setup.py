@@ -1,5 +1,5 @@
 from cx_Freeze import setup, Executable
-build_exe_options = {}
+build_exe_options = {"excludes":["pydoc"]}
 
 setup(name = "Rtris",
       version = "1.0",
