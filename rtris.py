@@ -5,9 +5,36 @@ from numpy import add as np_add
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame,pygame.freetype
 
+K_DROP=False
+confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
+
+if __name__=="__main__":
+	if not os.path.exists(confpath):
+		strg={"left":pygame.K_LEFT,
+			"right":pygame.K_RIGHT,
+			"drop":pygame.K_UP,
+			"idrop":pygame.K_DOWN,
+			"rot":pygame.K_PAGEUP,
+			"rot1":pygame.K_PAGEDOWN,
+			"exit":pygame.K_ESCAPE,
+			"pause":pygame.K_p}
+		conf={"strg":strg,
+			"fullscreen":False}
+		with open(confpath,"w+") as conffile:
+			json.dump(conf,conffile,ensure_ascii=False)
+	else:
+		with open(confpath,"r") as conffile:
+			conf=json.load(conffile)
+			strg=conf["strg"]
+
 pygame.init()
 pygame.freetype.init()
-screen=pygame.display.set_mode(pygame.display.list_modes()[0],pygame.FULLSCREEN)
+if conf["fullscreen"]:
+	screen_mode=pygame.HWSURFACE | pygame.FULLSCREEN | pygame.NOFRAME
+else:
+	screen_mode=pygame.HWSURFACE | pygame.NOFRAME
+screen=pygame.display.set_mode((0,0),screen_mode)
+del screen_mode
 pygame.display.set_caption("RTris")
 
 BORDER_WIDTH=5
@@ -569,6 +596,11 @@ class MainGame():
 		self.buttons["strgrot1"]=Button(x=LEFT_SIDE,y=self.buttons["strgrot"].rect.bottom+10,txt="Rotate \u21bc",posmeth=(1,1))
 		self.buttons["strgexit"]=Button(x=LEFT_SIDE,y=self.buttons["strgrot1"].rect.bottom+10,txt="Exit/Back",posmeth=(1,1))
 		self.buttons["strgpause"]=Button(x=LEFT_SIDE,y=self.buttons["strgexit"].rect.bottom+10,txt="Pause",posmeth=(1,1))
+		if conf["fullscreen"]:
+			fulscrncolr=[0,127,0]
+		else:
+			fulscrncolr=[127,0,0]
+		self.buttons["fullscreen"]=Button(x=RIGHT_SIDE,y=TOP_SIDE,txt="Fullscreen",posmeth=(-1,1),txtcolor=fulscrncolr)
 		while True:
 			self.draw()
 			if self.checkbuttons() or self.buttons["back"].pressed:
@@ -653,6 +685,16 @@ class MainGame():
 				self.buttons["strgpause"].pressed=False
 				self.buttons["strgpause"].txt="Pause"
 				self.buttons["strgpause"].render()
+			elif self.buttons["fullscreen"].pressed:
+				self.buttons["fullscreen"].pressed=False
+				conf["fullscreen"]=not conf["fullscreen"]
+				if conf["fullscreen"]:
+					fulscrncolr=[0,127,0]
+				else:
+					fulscrncolr=[127,0,0]
+				self.buttons["fullscreen"].color=fulscrncolr
+				self.buttons["fullscreen"].render()
+				pygame.display.toggle_fullscreen()
 	def wait4buttonpress(self):
 		while True:
 			event=pygame.event.wait()
@@ -670,27 +712,8 @@ class MainGame():
 			return True
 		return False
 
-
-
-K_DROP=False
-confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
-
 if __name__=="__main__":
-	if not os.path.exists(confpath):
-		strg={"left":pygame.K_LEFT,
-			"right":pygame.K_RIGHT,
-			"drop":pygame.K_UP,
-			"idrop":pygame.K_DOWN,
-			"rot":pygame.K_PAGEUP,
-			"rot1":pygame.K_PAGEDOWN,
-			"exit":pygame.K_ESCAPE,
-			"pause":pygame.K_p}
-		with open(confpath,"w") as conf:
-			json.dump(strg,conf,ensure_ascii=False)
-	else:
-		with open(confpath,"r") as conf:
-			strg=json.load(conf)
 	game=MainGame()
 	game.menu()
-	with open(confpath,"w") as conf:
-		json.dump(strg,conf,ensure_ascii=False)
+	with open(confpath,"w+") as conffile:
+		json.dump(conf,conffile,ensure_ascii=False)
