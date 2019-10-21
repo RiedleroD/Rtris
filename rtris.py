@@ -562,6 +562,7 @@ class MainGame():
 			if self.board.ended:
 				self.end()
 			self.board.clock.tick(60)
+		self.speed=0
 	def menu(self):
 		self.buttons={}
 		self.buttons["settings"]=Button(x=CENTERx,y=CENTERy,txt="Settings")
