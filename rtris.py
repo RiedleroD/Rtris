@@ -597,10 +597,11 @@ class MainGame():
 		self.buttons["strgexit"]=Button(x=LEFT_SIDE,y=self.buttons["strgrot1"].rect.bottom+10,txt="Exit/Back",posmeth=(1,1))
 		self.buttons["strgpause"]=Button(x=LEFT_SIDE,y=self.buttons["strgexit"].rect.bottom+10,txt="Pause",posmeth=(1,1))
 		if conf["fullscreen"]:
-			fulscrncolr=[0,127,0]
+			fulscrntxt="Fullscreen"
 		else:
-			fulscrncolr=[127,0,0]
-		self.buttons["fullscreen"]=Button(x=RIGHT_SIDE,y=TOP_SIDE,txt="Fullscreen",posmeth=(-1,1),txtcolor=fulscrncolr)
+			fulscrntxt="Borderless"
+		self.buttons["fullscreen"]=Button(x=RIGHT_SIDE,y=TOP_SIDE,txt=fulscrntxt,posmeth=(-1,1))
+		del fulscrntxt
 		while True:
 			self.draw()
 			if self.checkbuttons() or self.buttons["back"].pressed:
@@ -689,10 +690,9 @@ class MainGame():
 				self.buttons["fullscreen"].pressed=False
 				conf["fullscreen"]=not conf["fullscreen"]
 				if conf["fullscreen"]:
-					fulscrncolr=[0,127,0]
+					self.buttons["fullscreen"].txt="Fullscreen"
 				else:
-					fulscrncolr=[127,0,0]
-				self.buttons["fullscreen"].color=fulscrncolr
+					self.buttons["fullscreen"].txt="Borderless"
 				self.buttons["fullscreen"].render()
 				pygame.display.toggle_fullscreen()
 	def wait4buttonpress(self):
