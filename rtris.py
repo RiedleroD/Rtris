@@ -475,7 +475,7 @@ class MainGame():
 		self.screen.fill((0,0,0))
 		if self.running:
 			if self.board.paused:
-				text=scorefont.render("PAUSED",True,(255,255,255))
+				text=scorefont.render("PAUSED",(255,255,255))[0]
 				self.screen.blit(text,(CENTERx-text.get_width()//2,CENTERy-text.get_height()//2))
 			else:
 				self.board.draw(self.speed)
