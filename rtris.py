@@ -1,4 +1,4 @@
-#!usr/bin/python3
+#!/usr/bin/python3
 # coding: utf-8
 import os,random,math,json,subprocess
 from numpy import add as np_add
