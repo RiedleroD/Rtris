@@ -1,6 +1,6 @@
 #!usr/bin/python3
 # coding: utf-8
-import os,random,math,json
+import os,random,math,json,subprocess
 from numpy import add as np_add
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame,pygame.freetype
@@ -29,19 +29,40 @@ if __name__=="__main__":
 
 pygame.init()
 pygame.freetype.init()
-if conf["fullscreen"]:
-	screen_mode=pygame.HWSURFACE | pygame.FULLSCREEN | pygame.NOFRAME
+#I'm not particularly proud of this section...
+try:
+	from ctypes import windll	#windows specific
+except:
+	try:
+		from AppKit import NSScreen	#Mac OS X specific
+	except:
+		try:
+			w,h=subprocess.Popen(["xrandr | grep '*'"],shell=True,stdout=subprocess.PIPE).communicate()[0].split()[0].split(b"x")
+		except Exception as e:
+			print("Uhh... everything failed style")
+			_dispinfo=pygame.display.Info()	#When everythin fails, I.E. on not windows-, linux- or MacOS-based machines.
+			HEIGHT=_dispinfo.current_h
+			WIDTH=_dispinfo.current_w
+		else:
+			print("Unix style")
+			HEIGHT,WIDTH=int(h),int(w)
+	else:
+		print("MacOS style")
+		macsize=NSScreen.screens()[0].frame().size	#this should work, according to https://stackoverflow.com/a/3129567/10499494, but I have noone to test it...
+		HEIGHT=macsize.height
+		WIDTH=macsize.width
 else:
-	screen_mode=pygame.HWSURFACE | pygame.NOFRAME
-screen=pygame.display.set_mode((0,0),screen_mode)
-del screen_mode
-pygame.display.set_caption("RTris")
+	print("Windows style")
+	user32=windll.user32	#yep, windows fully through
+	user32.SetProcessDPIAware()
+	HEIGHT=user32.GetSystemMetrics(78)
+	WIDTH=user32.GetSystemMetrics(79)
+
+print(WIDTH,HEIGHT)
 
 BORDER_WIDTH=5
 BLACK=(0,0,0)
 WHITE=(255,255,255)
-HEIGHT=screen.get_height()
-WIDTH=screen.get_width()
 SIZE=math.sqrt(HEIGHT**2+WIDTH**2)
 LEFT_SIDE=0+BORDER_WIDTH
 RIGHT_SIDE=WIDTH-BORDER_WIDTH
@@ -51,6 +72,14 @@ CENTERx=WIDTH//2
 CENTERy=HEIGHT//2
 CENTER=[CENTERx,CENTERy]
 BLOCK_SIZE=HEIGHT/20
+
+if conf["fullscreen"]:
+	screen_mode=pygame.HWSURFACE | pygame.FULLSCREEN | pygame.NOFRAME
+else:
+	screen_mode=pygame.HWSURFACE | pygame.NOFRAME
+screen=pygame.display.set_mode((WIDTH,HEIGHT),screen_mode)
+del screen_mode
+pygame.display.set_caption("RTris")
 
 scorefont=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",30)
 
