@@ -19,7 +19,8 @@ if __name__=="__main__":
 			"exit":pygame.K_ESCAPE,
 			"pause":pygame.K_p}
 		conf={"strg":strg,
-			"fullscreen":False}
+			"fullscreen":False,
+			"show_fps":True}
 		with open(confpath,"w+") as conffile:
 			json.dump(conf,conffile,ensure_ascii=False)
 	else:
@@ -541,6 +542,8 @@ class MainGame():
 				if headsup!="" and type(headsup)==str:
 					hutxt=scorefont.render(headsup,(255,255,255),(0,0,0))[0]
 					self.screen.blit(hutxt,(5*BLOCK_SIZE-hutxt.get_width()//2,CENTERy-hutxt.get_height()//2))
+				if conf["show_fps"]:
+					self.screen.blit(scorefont.render(str(int(self.board.clock.get_fps())),(255,255,255))[0],(0,0))
 		else:
 			for name,button in self.buttons.items():
 				self.screen.blit(button.surface,button.rect)
@@ -630,7 +633,16 @@ class MainGame():
 			fulscrntxt="Fullscreen"
 		else:
 			fulscrntxt="Borderless"
+		try:
+			if conf["show_fps"]:
+				fpstxt="Show FPS"
+			else:
+				fpstxt="Hide FPS"
+		except KeyError:
+			conf["show_fps"]=True
+			fpstxt="Show FPS"
 		self.buttons["fullscreen"]=Button(x=RIGHT_SIDE,y=TOP_SIDE,txt=fulscrntxt,posmeth=(-1,1))
+		self.buttons["show_fps"]=Button(x=RIGHT_SIDE,y=self.buttons["fullscreen"].rect.bottom+10,txt=fpstxt,posmeth=(-1,1))
 		del fulscrntxt
 		while True:
 			self.draw()
@@ -725,6 +737,14 @@ class MainGame():
 					self.buttons["fullscreen"].txt="Borderless"
 				self.buttons["fullscreen"].render()
 				pygame.display.toggle_fullscreen()
+			elif self.buttons["show_fps"].pressed:
+				self.buttons["show_fps"].pressed=False
+				conf["show_fps"]=not conf["show_fps"]
+				if conf["show_fps"]:
+					self.buttons["show_fps"].txt="Show FPS"
+				else:
+					self.buttons["show_fps"].txt="Hide FPS"
+				self.buttons["show_fps"].render()
 	def wait4buttonpress(self):
 		while True:
 			event=pygame.event.wait()
