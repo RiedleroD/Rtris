@@ -426,24 +426,16 @@ class Board():
 						del self.blocks[block]
 		except IndexError:
 			pass
-	def draw(self,speed:int):
+	def draw(self,curtain:list=[]):
 		self.surface.fill((100,100,100))
-		score=self.calcscore()
-		lns=self.tetrisln*4+self.threeln*3+self.twoln*2+self.oneln
-		scoretxt=scorefont.render("Score: "+str(score),(255,255,255))[0]
-		lnstxt=scorefont.render("Lines: "+str(lns),(255,255,255))[0]
-		tetristxt=scorefont.render("Tetris': "+str(self.tetrisln),(255,255,255))[0]
-		threetxt=scorefont.render("Triples: "+str(self.threeln),(255,255,255))[0]
-		twotxt=scorefont.render("Doubles: "+str(self.twoln),(255,255,255))[0]
-		onetxt=scorefont.render("Singles: "+str(self.oneln),(255,255,255))[0]
-		leveltxt=scorefont.render("Level: "+str(speed),(255,255,255))[0]
-		screen.blit(scoretxt,(11*BLOCK_SIZE,3*BLOCK_SIZE))
-		screen.blit(lnstxt,(11*BLOCK_SIZE,4*BLOCK_SIZE))
-		screen.blit(leveltxt,(11*BLOCK_SIZE,5*BLOCK_SIZE))
-		screen.blit(tetristxt,(11*BLOCK_SIZE,6*BLOCK_SIZE))
-		screen.blit(threetxt,(11*BLOCK_SIZE,7*BLOCK_SIZE))
-		screen.blit(twotxt,(11*BLOCK_SIZE,8*BLOCK_SIZE))
-		screen.blit(onetxt,(11*BLOCK_SIZE,9*BLOCK_SIZE))
+		for block in self.blocks:
+			if block.alive:
+				for x,y in block.get_shadow(self):
+					pygame.draw.rect(self.surface,(125,125,125),(x,y,1,1))
+			for x,y in block.rects[block.rotation]:
+				pygame.draw.rect(self.surface,block.color,(x,y,1,1))
+		for line in curtain:
+			pygame.draw.rect(self.surface,(0,0,0),(0,line,10,1))
 	def pause(self):
 		self.paused=not self.paused
 
@@ -508,7 +500,15 @@ class MainGame():
 				text=scorefont.render("PAUSED",(255,255,255))[0]
 				self.screen.blit(text,(CENTERx-text.get_width()//2,CENTERy-text.get_height()//2))
 			else:
-				self.board.draw(self.speed)
+				score=self.board.calcscore()
+				lns=self.board.tetrisln*4+self.board.threeln*3+self.board.twoln*2+self.board.oneln
+				screen.blit(scorefont.render("Score: "+str(score),(255,255,255))[0],(11*BLOCK_SIZE,3*BLOCK_SIZE))
+				screen.blit(scorefont.render("Lines: "+str(lns),(255,255,255))[0],(11*BLOCK_SIZE,4*BLOCK_SIZE))
+				screen.blit(scorefont.render("Level: "+str(self.speed),(255,255,255))[0],(11*BLOCK_SIZE,5*BLOCK_SIZE))
+				screen.blit(scorefont.render("Tetris': "+str(self.board.tetrisln),(255,255,255))[0],(11*BLOCK_SIZE,6*BLOCK_SIZE))
+				screen.blit(scorefont.render("Triples: "+str(self.board.threeln),(255,255,255))[0],(11*BLOCK_SIZE,7*BLOCK_SIZE))
+				screen.blit(scorefont.render("Doubles: "+str(self.board.twoln),(255,255,255))[0],(11*BLOCK_SIZE,8*BLOCK_SIZE))
+				screen.blit(scorefont.render("Singles: "+str(self.board.oneln),(255,255,255))[0],(11*BLOCK_SIZE,9*BLOCK_SIZE))
 				#pygame.draw.rect(screen,(125,125,125),get_rect(11.5,1.5,2.5,2.5))
 				if show_upcoming:
 					upcoming=Block(typ=self.board.upcoming,x=0,y=0)
@@ -529,15 +529,7 @@ class MainGame():
 							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.35+y,1,1))
 					for x,y in upcoming.rects[0]:
 						pygame.draw.rect(self.screen,upcoming.color,get_rect(12+x*0.5,1+y*0.5,0.5,0.5))
-				
-				for block in self.board.blocks:
-					if block.alive:
-						for x,y in block.get_shadow(self.board):
-							pygame.draw.rect(self.board.surface,(125,125,125),(x,y,1,1))
-					for x,y in block.rects[block.rotation]:
-						pygame.draw.rect(self.board.surface,block.color,(x,y,1,1))
-				for line in curtain:
-					pygame.draw.rect(self.board.surface,(0,0,0),(0,line,10,1))
+				self.board.draw(curtain)
 				self.screen.blit(pygame.transform.scale(self.board.surface,(HEIGHT//2,HEIGHT)),(0,0))
 				if headsup!="" and type(headsup)==str:
 					hutxt=scorefont.render(headsup,(255,255,255),(0,0,0))[0]
