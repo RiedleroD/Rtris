@@ -633,7 +633,7 @@ class MainGame():
 				self.buttons={}
 				self.buttons["settings"]=Button(x=CENTERx,y=CENTERy,txt="Settings")
 				self.buttons["start"]=Button(x=CENTERx,y=self.buttons["settings"].rect.top-10,txt="Start",posmeth=(0,-1))
-				self.buttons["quit"]=Button(x=CENTERx,y=self.buttons["settings"].rect.bottom+10,txt="Quit",posmeth=(0,1))	
+				self.buttons["quit"]=Button(x=CENTERx,y=self.buttons["settings"].rect.bottom+10,txt="Quit",posmeth=(0,1))
 			elif self.buttons["quit"].pressed:
 				self.buttons["quit"].pressed=False
 				break
