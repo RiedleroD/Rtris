@@ -10,6 +10,13 @@ If you want to be a playtester, write an email to riedler@gelse.net or join the 
 
 v1.0<sub>unfinished</sub>
 
+- v1.0a3
+	- added the option to show fps
+	- heavy optimisations (up to 3 times faster on my Laptop)
+	- framerate now doesn't influence how fast the game is
+	- added line clear animation
+	- added LICENSE
+	- added Changelog to Readme
 - v1.0a2
 	- added setup.py for compiling
 	- fixed bugs
