@@ -282,14 +282,17 @@ class Board():
 	twoln=0
 	oneln=0
 	score=0
+	startdrop=True
+	movecounter=0
+	blinking=0
 	paused=False
 	ended=False
+	has2drop=0
 	def __init__(self):
 		self.clock=pygame.time.Clock()
 		self.blocks=[]
 		self.clearing=[]
 		self.rects2fall=[]
-		self.blinking=0
 		self.upcoming=random.randrange(0,7)
 		self.surface=pygame.Surface((10,20),pygame.HWSURFACE)
 	def checklns(self):
@@ -332,7 +335,7 @@ class Board():
 				for rot,rect in rects2del:
 					block.rects[rot][rect]=None
 		self.clearing.append(line)
-		self.blinking=6
+		self.blinking=150
 	def get_alive(self):
 		for block in self.blocks:
 			if block.alive:
@@ -370,19 +373,18 @@ class Board():
 				if allowed:
 					block.rotate(clockwise)
 	def cycle(self,speed:int):
-		if self.blinking and not self.paused:
-			self.blinking-=1
-			if not self.blinking:
+		if self.blinking>0 and not self.paused:
+			self.blinking-=self.clock.get_time()
+			if self.blinking<=0:
 				self.clearing=[]
 		elif not self.paused:
 			self.dontlettemout()
 			self.gravity(speed)
 			self.kill_blocks()
-			if not self.blinking:
+			if self.blinking<=0:
 				self.repopulate()
 			self.cleanup()
-			self.keyfunc()
-			self.counter+=1
+			self.counter+=self.clock.get_time()
 		if self.ended:
 			return False
 		else:
@@ -401,12 +403,20 @@ class Board():
 		if k:
 			self.checklns()
 	def gravity(self,speed):
+		dropped=False
 		for block,rot,rect in self.rects2fall:
 			block.rects[rot][rect][1]+=1
 		self.rects2fall=[]
 		if K_DROP:
-			pass
-		elif self.counter%round(15/(2**(speed/5)))==0:
+			if self.startdrop:
+				self.movecounter=self.counter
+			self.startdrop=False
+			speed+=20
+		while self.counter>self.movecounter:
+			dropped=True
+			if not K_DROP:
+				self.startdrop=True
+			self.movecounter+=(1000/(2**(speed/5)))
 			for block in self.blocks:
 				if block.alive:
 					block.move(0,1)
@@ -428,9 +438,6 @@ class Board():
 					else:
 						return -1
 		return 0
-	def keyfunc(self):
-		if K_DROP:
-			self.move_alive(0,1,die_when_stopped=True)
 	def cleanup(self):
 		for block in reversed(range(len(self.blocks))):
 			if not self.blocks[block].alive:
@@ -446,9 +453,9 @@ class Board():
 				if pos!=None:
 					self.surface.set_at(pos,block.color)
 		for ln in self.clearing:
-			if self.blinking>4:
+			if self.blinking>100:
 				pygame.draw.line(self.surface,(255,255,255),(0,ln),(10,ln))
-			elif self.blinking>2:
+			elif self.blinking>50:
 				pygame.draw.line(self.surface,(200,200,200),(0,ln),(10,ln))
 		for line in curtain:
 			pygame.draw.line(self.surface,(0,0,0),(0,line),(10,line))
@@ -568,9 +575,11 @@ class MainGame():
 		global K_DROP
 		self.running=True
 		while self.running:
-			self.cycle+=1
-			if self.cycle%3000==0:
+			self.cycle+=self.board.clock.get_time()
+			if (self.cycle//10)%3141<10:
 				self.speed+=1
+				while (self.cycle//10)%3141<10:
+					self.cycle+=1
 			for event in pygame.event.get():
 				if event.type==pygame.KEYDOWN:
 					if event.key==strg["exit"]:
@@ -585,6 +594,7 @@ class MainGame():
 						block=self.board.get_alive()
 						if block!=None:
 							self.board.counter=1
+							self.board.movecounter=1
 							while block.alive:
 								block.move(0,1)
 								self.board.kill_blocks()
@@ -602,7 +612,7 @@ class MainGame():
 			self.draw()
 			if self.board.ended:
 				self.end()
-			self.board.clock.tick(20)
+			self.board.clock.tick(60)
 		self.speed=0
 	def menu(self):
 		self.buttons={}
