@@ -9,9 +9,52 @@ from sys import argv
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
 
+VERSION="1.0a3"
+COPYRIGHT_YEAR="2019"
+# TODO: do you wanna give out your full name?
+COPYRIGHT_HOLDER="RIEDLER"
+AUTHORS="RIEDLER and Michael Federczuk"
+
+USAGE="usage: %s" % (argv[0])
+HELP="""\
+%s
+    Start Rtris, a Tetris clone written in Python.
+
+    Options:
+      -h, --help     display this summary and exit
+      -V, --version  display version information and exit
+
+    Exit Status:
+      (using CommonCodes v1.0.0
+       <https://mfederczuk.github.io/commoncodes/v/1.0.0.html>)
+
+Report bugs at: https://github.com/RiedleroD/Rtris/issues
+Rtris repository: https://github.com/RiedleroD/Rtris""" % (USAGE)
+VERSION_INFO="""\
+Rtris %s
+Copyright (c) %s %s
+License CC BY-SA 4.0: Creative Commons Attribution-ShareAlike 4.0 <http://creativecommons.org/licenses/by-sa/4.0>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Written by %s.""" % (VERSION, COPYRIGHT_YEAR, COPYRIGHT_HOLDER, AUTHORS)
+
 def eprint(*args, **kwargs):
 	from sys import stderr
 	print(*args, file=stderr, **kwargs)
+
+def opt_help(opt, arg):
+	if arg != None:
+		eprint("%s: %s: too many arguments: 1" % (argv[0], opt))
+		exit(4)
+	print(HELP)
+	exit(0)
+def opt_version_info(opt, arg):
+	if arg != None:
+		eprint("%s: %s: too many arguments: 1" % (argv[0], opt))
+		exit(4)
+	print(VERSION_INFO)
+	exit(0)
 
 # options are stored in this array here as tuples
 # tuple[0]: array of single character strings representing the short options
@@ -29,7 +72,10 @@ def eprint(*args, **kwargs):
 #            checking for invalid options and BEFORE the low priority options.
 #            if False, the option is low priority and will be executed AFTER
 #            checking for invalid options and AFTER the high priority options
-options=[]
+options=[
+	(["h"], ["help"],    False, opt_help,         True),
+	(["V"], ["version"], False, opt_version_info, True)
+]
 
 if __name__=="__main__":
 	from re import match
