@@ -233,12 +233,12 @@ class Block():
 			self.move(0,-1)
 	def any_rect(self,func):
 		for rect in self.rects[self.rotation]:
-			if func(rect):
+			if rect!=None and func(rect):
 				return True
 		return False
 	def all_rects(self,func):
 		for rect in self.rects[self.rotation]:
-			if not func(rect):
+			if rect!=None and not func(rect):
 				return False
 		return True
 	def move(self,x:int,y:int):
@@ -287,6 +287,9 @@ class Board():
 	def __init__(self):
 		self.clock=pygame.time.Clock()
 		self.blocks=[]
+		self.clearing=[]
+		self.rects2fall=[]
+		self.blinking=0
 		self.upcoming=random.randrange(0,7)
 		self.surface=pygame.Surface((10,20),pygame.HWSURFACE)
 	def checklns(self):
@@ -318,18 +321,18 @@ class Board():
 			if not block.alive:
 				rects2del=[]
 				rects2fall=[]
-				offset=0
 				for rot in range(len(block.rects)):
 					for rect in range(len(block.rects[rot])):
-						if block.rects[rot][rect][1]==line:
+						if block.rects[rot][rect]==None:
+							pass
+						elif block.rects[rot][rect][1]==line:
 							rects2del.append([rot,rect])
 						elif block.rects[rot][rect][1]<line:
-							rects2fall.append([rot,rect])
-				for rot,rect in rects2fall:
-					block.rects[rot][rect][1]+=1
+							self.rects2fall.append([block,rot,rect])
 				for rot,rect in rects2del:
-					del block.rects[rot][rect-offset]
-					offset+=1
+					block.rects[rot][rect]=None
+		self.clearing.append(line)
+		self.blinking=20
 	def get_alive(self):
 		for block in self.blocks:
 			if block.alive:
@@ -367,13 +370,17 @@ class Board():
 				if allowed:
 					block.rotate(clockwise)
 	def cycle(self,speed:int):
-		if not self.paused:
+		if self.blinking and not self.paused:
+			self.blinking-=1
+			if not self.blinking:
+				self.clearing=[]
+		elif not self.paused:
 			self.dontlettemout()
-			if self.counter%round(50/(2**(speed/5)))==0:
-				self.gravity()
-			self.repopulate()
+			self.gravity(speed)
 			self.kill_blocks()
 			self.checklns()
+			if not self.blinking:
+				self.repopulate()
 			self.cleanup()
 			if self.counter%3==0:
 				self.keyfunc()
@@ -391,12 +398,16 @@ class Board():
 						block.die()
 						self.dropped+=1
 						break
-	def gravity(self):
+	def gravity(self,speed):
+		for block,rot,rect in self.rects2fall:
+			block.rects[rot][rect][1]+=1
+		self.rects2fall=[]
 		if K_DROP:
-			return
-		for block in self.blocks:
-			if block.alive:
-				block.move(0,1)
+			pass
+		elif self.counter%round(50/(2**(speed/5)))==0:
+			for block in self.blocks:
+				if block.alive:
+					block.move(0,1)
 	def repopulate(self):
 		for block in self.blocks:
 			if block.alive:
@@ -432,8 +443,14 @@ class Board():
 			if block.alive:
 				for x,y in block.get_shadow(self):
 					pygame.draw.rect(self.surface,(125,125,125),(x,y,1,1))
-			for x,y in block.rects[block.rotation]:
-				pygame.draw.rect(self.surface,block.color,(x,y,1,1))
+			for pos in block.rects[block.rotation]:
+				if pos!=None:
+					pygame.draw.rect(self.surface,block.color,(*pos,1,1))
+		for ln in self.clearing:
+			if self.blinking>14:
+				pygame.draw.rect(self.surface,(255,255,255),(0,ln,10,1))
+			elif self.blinking>7:
+				pygame.draw.rect(self.surface,(200,200,200),(0,ln,10,1))
 		for line in curtain:
 			pygame.draw.rect(self.surface,(0,0,0),(0,line,10,1))
 	def pause(self):
@@ -566,12 +583,13 @@ class MainGame():
 					elif event.key==strg["drop"]:
 						K_DROP=True
 					elif event.key==strg["idrop"]:
-						self.board.counter=1
 						block=self.board.get_alive()
-						while block.alive:
-							block.move(0,1)
-							self.board.kill_blocks()
-						self.board.harddrop+=1
+						if block!=None:
+							self.board.counter=1
+							while block.alive:
+								block.move(0,1)
+								self.board.kill_blocks()
+							self.board.harddrop+=1
 					elif event.key==strg["rot"]:
 						self.board.rotate_alive(1)
 					elif event.key==strg["rot1"]:
