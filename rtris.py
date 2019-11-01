@@ -149,6 +149,9 @@ if __name__=="__main__":
 		else:
 			eprint("%s: %s: invalid option" % (argv[0], opt[1]))
 			exit(5)
+	if len(args) > 0:
+		eprint("%s: too many arguments: %d" % (argv[0], len(args)))
+		exit(4)
 	if not os.path.exists(confpath):
 		strg={"left":pygame.K_LEFT,
 			"right":pygame.K_RIGHT,
