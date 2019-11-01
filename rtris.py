@@ -4,11 +4,105 @@ import os,random,math,json,subprocess
 from numpy import add as np_add
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame,pygame.freetype
+from sys import argv
 
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
 
+def eprint(*args, **kwargs):
+	from sys import stderr
+	print(*args, file=stderr, **kwargs)
+
+# options are stored in this array here as tuples
+# tuple[0]: array of single character strings representing the short options
+# tuple[1]: array of strings representing the long options
+# tuple[2]: boolean value that decides whether or not the option requires an
+#            argument. if no argument is given, the handler will still be passed
+#            a None value, so the handler has to check for a missing argument
+# tuple[3]: the option handler function.
+#            the first parameter will be the name of the option used in the
+#            command line with the dashes. (e.g.: "-h", "--help", ...)
+#            the second parameter will be the argument given to the option on
+#            the command line. it doesn't matter what the value of tuple[2] is,
+#            this parameter can either be a string or None
+# tuple[4]: if True, the option is high priority and will be executed BEFORE
+#            checking for invalid options and BEFORE the low priority options.
+#            if False, the option is low priority and will be executed AFTER
+#            checking for invalid options and AFTER the high priority options
+options=[]
+
 if __name__=="__main__":
+	from re import match
+	ignopt=False
+	args=[]
+	hpoptqueue=[] # high priority option queue
+	lpoptqueue=[] # low priority option queue
+	ignopt=False
+	i=1
+	argc=len(argv)
+	while i < argc:
+		arg=argv[i]
+		longmatch=None
+		shortmatch=None
+		if not ignopt:
+			longmatch=match(r"^--([^=]+)(=(.*))?$", arg)
+			shortmatch=match(r"^-([^-].*)$", arg)
+		if longmatch != None:
+			opt=longmatch.group(1)
+			optarg=longmatch.group(3)
+			option_found=False
+			for option in options:
+				if opt in option[1]:
+					option_found=True
+					if option[2] and optarg == None:
+						if i + 1 < argc:
+							optarg=argv[i + 1]
+							i+=1
+					if option[4]:
+						hpoptqueue.append((option[3], "--" + opt, optarg))
+					else:
+						lpoptqueue.append((option[3], "--" + opt, optarg))
+					break
+			if not option_found:
+				lpoptqueue.insert(0, (None, "--" + opt))
+		elif shortmatch != None:
+			opts=shortmatch.group(1)
+			c=0
+			l=len(opts)
+			while c < l:
+				opt=opts[c]
+				option_found=False
+				for option in options:
+					if opt in option[0]:
+						option_found=True
+						optarg=None
+						if option[2]:
+							if c + 1 < l:
+								optarg=opts[c + 1:]
+								c=l
+							elif i + 1 < argc:
+								optarg=argv[i + 1]
+								i+=1
+						if option[4]:
+							hpoptqueue.append((option[3], "-" + opt, optarg))
+						else:
+							lpoptqueue.append((option[3], "-" + opt, optarg))
+						break
+				if not option_found:
+					lpoptqueue.insert(0, (None, "-" + opt))
+				c+=1
+		else:
+			if not ignopt and arg == "--":
+				ignopt=True
+			else:
+				args.append(arg)
+		i+=1
+	for opt in [*hpoptqueue, *lpoptqueue]:
+		if opt[0] != None:
+			opt[0](opt[1], opt[2])
+		else:
+			eprint("%s: %s: invalid option" % (argv[0], opt[1]))
+			exit(5)
 	if not os.path.exists(confpath):
 		strg={"left":pygame.K_LEFT,
 			"right":pygame.K_RIGHT,
