@@ -438,18 +438,18 @@ class Board():
 		self.surface.fill((100,100,100))
 		for block in self.blocks:
 			if block.alive:
-				for x,y in block.get_shadow(self):
-					pygame.draw.rect(self.surface,(125,125,125),(x,y,1,1))
+				for pos in block.get_shadow(self):
+					self.surface.set_at(pos,(125,125,125))
 			for pos in block.rects[block.rotation]:
 				if pos!=None:
-					pygame.draw.rect(self.surface,block.color,(*pos,1,1))
+					self.surface.set_at(pos,block.color)
 		for ln in self.clearing:
 			if self.blinking>14:
-				pygame.draw.rect(self.surface,(255,255,255),(0,ln,10,1))
+				pygame.draw.line(self.surface,(255,255,255),(0,ln),(10,ln))
 			elif self.blinking>7:
-				pygame.draw.rect(self.surface,(200,200,200),(0,ln,10,1))
+				pygame.draw.line(self.surface,(200,200,200),(0,ln),(10,ln))
 		for line in curtain:
-			pygame.draw.rect(self.surface,(0,0,0),(0,line,10,1))
+			pygame.draw.line(self.surface,(0,0,0),(0,line),(10,line))
 	def pause(self):
 		self.paused=not self.paused
 
