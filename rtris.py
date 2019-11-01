@@ -378,7 +378,6 @@ class Board():
 			self.dontlettemout()
 			self.gravity(speed)
 			self.kill_blocks()
-			self.checklns()
 			if not self.blinking:
 				self.repopulate()
 			self.cleanup()
@@ -390,14 +389,18 @@ class Board():
 		else:
 			return True
 	def kill_blocks(self):
+		k=False
 		for block in self.blocks:
 			if block.alive:
 				for pos in block.get_poss():
 					if self.check_pos([pos[0],pos[1]]) in (-1,-2):
 						block.move(0,-1)
 						block.die()
+						k=True
 						self.dropped+=1
 						break
+		if k:
+			self.checklns()
 	def gravity(self,speed):
 		for block,rot,rect in self.rects2fall:
 			block.rects[rot][rect][1]+=1
