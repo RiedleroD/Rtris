@@ -332,7 +332,7 @@ class Board():
 				for rot,rect in rects2del:
 					block.rects[rot][rect]=None
 		self.clearing.append(line)
-		self.blinking=20
+		self.blinking=6
 	def get_alive(self):
 		for block in self.blocks:
 			if block.alive:
@@ -381,8 +381,7 @@ class Board():
 			if not self.blinking:
 				self.repopulate()
 			self.cleanup()
-			if self.counter%3==0:
-				self.keyfunc()
+			self.keyfunc()
 			self.counter+=1
 		if self.ended:
 			return False
@@ -407,7 +406,7 @@ class Board():
 		self.rects2fall=[]
 		if K_DROP:
 			pass
-		elif self.counter%round(50/(2**(speed/5)))==0:
+		elif self.counter%round(15/(2**(speed/5)))==0:
 			for block in self.blocks:
 				if block.alive:
 					block.move(0,1)
@@ -447,9 +446,9 @@ class Board():
 				if pos!=None:
 					self.surface.set_at(pos,block.color)
 		for ln in self.clearing:
-			if self.blinking>14:
+			if self.blinking>4:
 				pygame.draw.line(self.surface,(255,255,255),(0,ln),(10,ln))
-			elif self.blinking>7:
+			elif self.blinking>2:
 				pygame.draw.line(self.surface,(200,200,200),(0,ln),(10,ln))
 		for line in curtain:
 			pygame.draw.line(self.surface,(0,0,0),(0,line),(10,line))
@@ -603,7 +602,7 @@ class MainGame():
 			self.draw()
 			if self.board.ended:
 				self.end()
-			self.board.clock.tick(60)
+			self.board.clock.tick(20)
 		self.speed=0
 	def menu(self):
 		self.buttons={}
