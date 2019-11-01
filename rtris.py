@@ -430,13 +430,10 @@ class Board():
 		if K_DROP:
 			self.move_alive(0,1,die_when_stopped=True)
 	def cleanup(self):
-		try:
-			for block in range(len(self.blocks)):
-				for rot in self.blocks[block].rects:
-					if len(rot)==0:
-						del self.blocks[block]
-		except IndexError:
-			pass
+		for block in reversed(range(len(self.blocks))):
+			if not self.blocks[block].alive:
+				if not any([rect!=None for rect in self.blocks[block].rects]):
+					del self.blocks[block]
 	def draw(self,curtain:list=[]):
 		self.surface.fill((100,100,100))
 		for block in self.blocks:
