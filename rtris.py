@@ -21,8 +21,10 @@ HELP="""\
     Start Rtris, a Tetris clone written in Python.
 
     Options:
-      -h, --help     display this summary and exit
-      -V, --version  display version information and exit
+      -h, --help      display this summary and exit
+      -V, --version   display version information and exit
+      -d, --debug     print debug information (default)
+      -D, --no-debug  don't print debug information
 
     Exit Status:
       (using CommonCodes v1.0.0
@@ -56,6 +58,24 @@ def opt_version_info(opt, arg):
 	print(VERSION_INFO)
 	exit(0)
 
+debug=True
+def dprint(*args, **kwargs):
+	global debug
+	if debug:
+		print(*args, **kwargs)
+def opt_debug(opt, arg):
+	if arg != None:
+		eprint("%s: %s: too many arguments: 1" % (argv[0], opt))
+		exit(4)
+	global debug
+	debug=True
+def opt_no_debug(opt, arg):
+	if arg != None:
+		eprint("%s: %s: too many arguments: 1" % (argv[0], opt))
+		exit(4)
+	global debug
+	debug=False
+
 # options are stored in this array here as tuples
 # tuple[0]: array of single character strings representing the short options
 # tuple[1]: array of strings representing the long options
@@ -73,8 +93,10 @@ def opt_version_info(opt, arg):
 #            if False, the option is low priority and will be executed AFTER
 #            checking for invalid options and AFTER the high priority options
 options=[
-	(["h"], ["help"],    False, opt_help,         True),
-	(["V"], ["version"], False, opt_version_info, True)
+	(["h"], ["help"],     False, opt_help,         True),
+	(["V"], ["version"],  False, opt_version_info, True),
+	(["d"], ["debug"],    False, opt_debug,        False),
+	(["D"], ["no-debug"], False, opt_no_debug,     False)
 ]
 
 if __name__=="__main__":
@@ -183,26 +205,26 @@ except:
 		try:
 			w,h=subprocess.Popen(["xrandr | grep '*'"],shell=True,stdout=subprocess.PIPE).communicate()[0].split()[0].split(b"x")
 		except Exception as e:
-			print("Uhh... everything failed style")
+			dprint("Uhh... everything failed style")
 			_dispinfo=pygame.display.Info()	#When everythin fails, I.E. on not windows-, linux- or MacOS-based machines.
 			HEIGHT=_dispinfo.current_h
 			WIDTH=_dispinfo.current_w
 		else:
-			print("Unix style")
+			dprint("Unix style")
 			HEIGHT,WIDTH=int(h),int(w)
 	else:
-		print("MacOS style")
+		dprint("MacOS style")
 		macsize=NSScreen.screens()[0].frame().size	#this should work, according to https://stackoverflow.com/a/3129567/10499494, but I have noone to test it...
 		HEIGHT=macsize.height
 		WIDTH=macsize.width
 else:
-	print("Windows style")
+	dprint("Windows style")
 	user32=windll.user32	#yep, windows fully through
 	user32.SetProcessDPIAware()
 	HEIGHT=user32.GetSystemMetrics(78)
 	WIDTH=user32.GetSystemMetrics(79)
 
-print(WIDTH,HEIGHT)
+dprint(WIDTH,HEIGHT)
 
 BORDER_WIDTH=5
 BLACK=(0,0,0)
