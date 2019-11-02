@@ -22,8 +22,8 @@ HELP="""\
     Options:
       -h, --help      display this summary and exit
       -V, --version   display version information and exit
-      -d, --debug     print debug information (default)
-      -D, --no-debug  don't print debug information
+      -d, --debug     print debug information
+      -D, --no-debug  don't print debug information (default)
 
     Exit Status:
       (using CommonCodes v1.0.0
@@ -56,7 +56,7 @@ def opt_version_info(opt, arg):
 	print(VERSION_INFO)
 	exit(0)
 
-debug=True
+debug=False
 def dprint(*args, **kwargs):
 	global debug
 	if debug:
