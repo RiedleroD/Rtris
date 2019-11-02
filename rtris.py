@@ -23,7 +23,6 @@ HELP="""\
       -h, --help      display this summary and exit
       -V, --version   display version information and exit
       -d, --debug     print debug information
-      -D, --no-debug  don't print debug information (default)
 
     Exit Status:
       (using CommonCodes v1.0.0
@@ -66,12 +65,6 @@ def opt_debug(opt, arg):
 		eprint("%s: %s: too many arguments: 1" % (argv[0], opt))
 		exit(4)
 	debug=True
-def opt_no_debug(opt, arg):
-	global debug
-	if arg != None:
-		eprint("%s: %s: too many arguments: 1" % (argv[0], opt))
-		exit(4)
-	debug=False
 
 # options are stored in this array here as tuples
 # tuple[0]: array of single character strings representing the short options
@@ -92,8 +85,7 @@ def opt_no_debug(opt, arg):
 options=[
 	(["h"], ["help"],     False, opt_help,         True),
 	(["V"], ["version"],  False, opt_version_info, True),
-	(["d"], ["debug"],    False, opt_debug,        False),
-	(["D"], ["no-debug"], False, opt_no_debug,     False)
+	(["d"], ["debug"],    False, opt_debug,        False)
 ]
 
 if __name__=="__main__":
