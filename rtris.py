@@ -4,11 +4,152 @@ import os,random,math,json,subprocess
 from numpy import add as np_add
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame,pygame.freetype
+from sys import argv
 
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
 
+VERSION="1.0a3"
+COPYRIGHT_YEAR="2019"
+COPYRIGHT_HOLDER="Riedler"
+AUTHORS="Rielder and Michael Federczuk"
+
+USAGE="usage: %s" % (argv[0])
+HELP="""\
+%s
+    Start Rtris, a Tetris clone written in Python.
+
+    Options:
+      -h, --help      display this summary and exit
+      -V, --version   display version information and exit
+      -d, --debug     print debug information
+
+Report bugs at: https://github.com/RiedleroD/Rtris/issues
+Rtris repository: https://github.com/RiedleroD/Rtris""" % (USAGE)
+VERSION_INFO="""\
+Rtris %s
+Copyright (c) %s %s
+License CC BY-SA 4.0: Creative Commons Attribution-ShareAlike 4.0 <http://creativecommons.org/licenses/by-sa/4.0>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Written by %s.""" % (VERSION, COPYRIGHT_YEAR, COPYRIGHT_HOLDER, AUTHORS)
+
+def opt_help(opt, arg):
+	if arg != None:
+		raise Exception("%s: too many arguments: 1" % (opt))
+	print(HELP)
+	exit(0)
+def opt_version_info(opt, arg):
+	if arg != None:
+		raise Exception("%s: too many arguments: 1" % (opt))
+	print(VERSION_INFO)
+	exit(0)
+
+debug=False
+def dprint(*args, **kwargs):
+	if debug:
+		print(*args, **kwargs)
+def opt_debug(opt, arg):
+	global debug
+	if arg != None:
+		raise Exception("%s: too many arguments: 1" % (opt))
+	debug=True
+
+# options are stored in this array here as tuples
+# tuple[0]: array of single character strings representing the short options
+# tuple[1]: array of strings representing the long options
+# tuple[2]: boolean value that decides whether or not the option requires an
+#            argument. if no argument is given, the handler will still be passed
+#            a None value, so the handler has to check for a missing argument
+# tuple[3]: the option handler function.
+#            the first parameter will be the name of the option used in the
+#            command line with the dashes. (e.g.: "-h", "--help", ...)
+#            the second parameter will be the argument given to the option on
+#            the command line. it doesn't matter what the value of tuple[2] is,
+#            this parameter can either be a string or None
+# tuple[4]: if True, the option is high priority and will be executed BEFORE
+#            checking for invalid options and BEFORE the low priority options.
+#            if False, the option is low priority and will be executed AFTER
+#            checking for invalid options and AFTER the high priority options
+options=[
+	(["h"], ["help"],     False, opt_help,         True),
+	(["V"], ["version"],  False, opt_version_info, True),
+	(["d"], ["debug"],    False, opt_debug,        False)
+]
+
 if __name__=="__main__":
+	from re import match
+	args=[]
+	hpoptqueue=[] # high priority option queue
+	lpoptqueue=[] # low priority option queue
+	ignopt=False
+	i=1
+	argc=len(argv)
+	while i < argc:
+		arg=argv[i]
+		longmatch=None
+		shortmatch=None
+		if not ignopt:
+			longmatch=match(r"^--([^=]+)(=(.*))?$", arg)
+			shortmatch=match(r"^-([^-].*)$", arg)
+		if longmatch != None:
+			opt=longmatch.group(1)
+			optarg=longmatch.group(3)
+			option_found=False
+			for option in options:
+				if opt in option[1]:
+					option_found=True
+					if option[2] and optarg == None:
+						if i + 1 < argc:
+							optarg=argv[i + 1]
+							i+=1
+					if option[4]:
+						hpoptqueue.append((option[3], "--" + opt, optarg))
+					else:
+						lpoptqueue.append((option[3], "--" + opt, optarg))
+					break
+			if not option_found:
+				lpoptqueue.insert(0, (None, "--" + opt))
+		elif shortmatch != None:
+			opts=shortmatch.group(1)
+			c=0
+			l=len(opts)
+			while c < l:
+				opt=opts[c]
+				option_found=False
+				for option in options:
+					if opt in option[0]:
+						option_found=True
+						optarg=None
+						if option[2]:
+							if c + 1 < l:
+								optarg=opts[c + 1:]
+								c=l
+							elif i + 1 < argc:
+								optarg=argv[i + 1]
+								i+=1
+						if option[4]:
+							hpoptqueue.append((option[3], "-" + opt, optarg))
+						else:
+							lpoptqueue.append((option[3], "-" + opt, optarg))
+						break
+				if not option_found:
+					lpoptqueue.insert(0, (None, "-" + opt))
+				c+=1
+		else:
+			if not ignopt and arg == "--":
+				ignopt=True
+			else:
+				args.append(arg)
+		i+=1
+	for opt in [*hpoptqueue, *lpoptqueue]:
+		if opt[0] != None:
+			opt[0](opt[1], opt[2])
+		else:
+			raise Exception("%s: invalid option" % (opt[1]))
+	if len(args) > 0:
+		raise Exception("too many arguments: %d" % (len(args)))
 	if not os.path.exists(confpath):
 		strg={"left":pygame.K_LEFT,
 			"right":pygame.K_RIGHT,
@@ -40,26 +181,26 @@ except:
 		try:
 			w,h=subprocess.Popen(["xrandr | grep '*'"],shell=True,stdout=subprocess.PIPE).communicate()[0].split()[0].split(b"x")
 		except Exception as e:
-			print("Uhh... everything failed style")
+			dprint("Uhh... everything failed style")
 			_dispinfo=pygame.display.Info()	#When everythin fails, I.E. on not windows-, linux- or MacOS-based machines.
 			HEIGHT=_dispinfo.current_h
 			WIDTH=_dispinfo.current_w
 		else:
-			print("Unix style")
+			dprint("Unix style")
 			HEIGHT,WIDTH=int(h),int(w)
 	else:
-		print("MacOS style")
+		dprint("MacOS style")
 		macsize=NSScreen.screens()[0].frame().size	#this should work, according to https://stackoverflow.com/a/3129567/10499494, but I have noone to test it...
 		HEIGHT=macsize.height
 		WIDTH=macsize.width
 else:
-	print("Windows style")
+	dprint("Windows style")
 	user32=windll.user32	#yep, windows fully through
 	user32.SetProcessDPIAware()
 	HEIGHT=user32.GetSystemMetrics(78)
 	WIDTH=user32.GetSystemMetrics(79)
 
-print(WIDTH,HEIGHT)
+dprint(WIDTH,HEIGHT)
 
 BORDER_WIDTH=5
 BLACK=(0,0,0)
