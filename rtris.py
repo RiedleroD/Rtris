@@ -11,9 +11,8 @@ confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
 
 VERSION="1.0a3"
 COPYRIGHT_YEAR="2019"
-# TODO: do you wanna give out your full name?
-COPYRIGHT_HOLDER="RIEDLER"
-AUTHORS="RIEDLER and Michael Federczuk"
+COPYRIGHT_HOLDER="Riedler"
+AUTHORS="Rielder and Michael Federczuk"
 
 USAGE="usage: %s" % (argv[0])
 HELP="""\
