@@ -62,16 +62,16 @@ def dprint(*args, **kwargs):
 	if debug:
 		print(*args, **kwargs)
 def opt_debug(opt, arg):
+	global debug
 	if arg != None:
 		eprint("%s: %s: too many arguments: 1" % (argv[0], opt))
 		exit(4)
-	global debug
 	debug=True
 def opt_no_debug(opt, arg):
+	global debug
 	if arg != None:
 		eprint("%s: %s: too many arguments: 1" % (argv[0], opt))
 		exit(4)
-	global debug
 	debug=False
 
 # options are stored in this array here as tuples
