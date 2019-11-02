@@ -58,7 +58,6 @@ def opt_version_info(opt, arg):
 
 debug=False
 def dprint(*args, **kwargs):
-	global debug
 	if debug:
 		print(*args, **kwargs)
 def opt_debug(opt, arg):
