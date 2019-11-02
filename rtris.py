@@ -4,7 +4,7 @@ import os,random,math,json,subprocess
 from numpy import add as np_add
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame,pygame.freetype
-from sys import argv,stderr
+from sys import argv
 
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
@@ -24,10 +24,6 @@ HELP="""\
       -V, --version   display version information and exit
       -d, --debug     print debug information
 
-    Exit Status:
-      (using CommonCodes v1.0.0
-       <https://mfederczuk.github.io/commoncodes/v/1.0.0.html>)
-
 Report bugs at: https://github.com/RiedleroD/Rtris/issues
 Rtris repository: https://github.com/RiedleroD/Rtris""" % (USAGE)
 VERSION_INFO="""\
@@ -39,19 +35,14 @@ There is NO WARRANTY, to the extent permitted by law.
 
 Written by %s.""" % (VERSION, COPYRIGHT_YEAR, COPYRIGHT_HOLDER, AUTHORS)
 
-def eprint(*args, **kwargs):
-	print(*args, file=stderr, **kwargs)
-
 def opt_help(opt, arg):
 	if arg != None:
-		eprint("%s: %s: too many arguments: 1" % (argv[0], opt))
-		exit(4)
+		raise Exception("%s: too many arguments: 1" % (opt))
 	print(HELP)
 	exit(0)
 def opt_version_info(opt, arg):
 	if arg != None:
-		eprint("%s: %s: too many arguments: 1" % (argv[0], opt))
-		exit(4)
+		raise Exception("%s: too many arguments: 1" % (opt))
 	print(VERSION_INFO)
 	exit(0)
 
@@ -62,8 +53,7 @@ def dprint(*args, **kwargs):
 def opt_debug(opt, arg):
 	global debug
 	if arg != None:
-		eprint("%s: %s: too many arguments: 1" % (argv[0], opt))
-		exit(4)
+		raise Exception("%s: too many arguments: 1" % (opt))
 	debug=True
 
 # options are stored in this array here as tuples
@@ -157,11 +147,9 @@ if __name__=="__main__":
 		if opt[0] != None:
 			opt[0](opt[1], opt[2])
 		else:
-			eprint("%s: %s: invalid option" % (argv[0], opt[1]))
-			exit(5)
+			raise Exception("%s: invalid option" % (opt[1]))
 	if len(args) > 0:
-		eprint("%s: too many arguments: %d" % (argv[0], len(args)))
-		exit(4)
+		raise Exception("too many arguments: %d" % (len(args)))
 	if not os.path.exists(confpath):
 		strg={"left":pygame.K_LEFT,
 			"right":pygame.K_RIGHT,
