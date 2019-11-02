@@ -4,7 +4,7 @@ import os,random,math,json,subprocess
 from numpy import add as np_add
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame,pygame.freetype
-from sys import argv
+from sys import argv,stderr
 
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
@@ -41,7 +41,6 @@ There is NO WARRANTY, to the extent permitted by law.
 Written by %s.""" % (VERSION, COPYRIGHT_YEAR, COPYRIGHT_HOLDER, AUTHORS)
 
 def eprint(*args, **kwargs):
-	from sys import stderr
 	print(*args, file=stderr, **kwargs)
 
 def opt_help(opt, arg):
