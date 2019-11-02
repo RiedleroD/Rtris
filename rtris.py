@@ -101,7 +101,6 @@ options=[
 
 if __name__=="__main__":
 	from re import match
-	ignopt=False
 	args=[]
 	hpoptqueue=[] # high priority option queue
 	lpoptqueue=[] # low priority option queue
