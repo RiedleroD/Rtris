@@ -1,0 +1,35 @@
+<svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 16 16" version="1">
+	<style>
+		.s0{
+			fill:#7f007f;
+			stroke-width:0.5;
+			stroke:#000;}
+		.s1{
+			fill:#ff7f00;
+			stroke-width:0.5;
+			stroke:#000;}
+		.s2{
+			fill:#ff0;
+			stroke-width:0.5;
+			stroke:#000;}
+		.s3{
+			fill:#f00;
+			stroke-width:0.5;
+			stroke:#000;}
+		</style>
+	<path d="M0 2H2V4H4V2H6V0H0Z" class="s0"/>
+	<path d="M4 4H8V2h2V0H6V2H4Z" style="fill:#0f0;stroke-width:0.5;stroke:#000"/>
+	<path d="M2 10H0V2h2c0 3 0 5 0 8z" style="fill:#24ffff;stroke-width:0.5;stroke:#000"/>
+	<path d="m6 12v4H2v-4z" style="fill:#d2ff00;stroke-width:0.5;stroke:#000"/>
+	<path d="M2 10H8V6H6V8H2Z" class="s1"/>
+	<path d="m10 0h2V6H10V4H8V2h2z" class="s0"/>
+	<path d="m12 2h2v4h2V0h-4z" class="s1"/>
+	<path d="M14 10H12V2h2c0 3 0 5 0 8z" style="fill:#0ff;stroke-width:0.5;stroke:#000"/>
+	<path d="m12 10v2h4V6h-2v4z" style="fill:#0000ef;stroke-width:0.5;stroke:#000"/>
+	<path d="m8 8v4h4V8Z" class="s2"/>
+	<path d="m0 10v6h2v-4h2v-2z" style="fill:#00f;stroke-width:0.5;stroke:#000"/>
+	<path d="m6 16h6v-4h-2v2H6Z" class="s1"/>
+	<path d="m12 16h4v-4h-4zM2 4V8H6V4Z" class="s2"/>
+	<path d="M6 4H10V6H12V8H8V6H6Z" class="s3"/>
+	<path d="M4 10H8V12h2v2H6V12H4Z" class="s3"/>
+</svg>
