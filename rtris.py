@@ -997,6 +997,34 @@ class MainGame():
 
 if __name__=="__main__":
 	try:
+		dprint("""Configurations:
+  strg:
+    left:%s
+    right:%s
+    drop:%s
+    idrop:%s
+    rot:%s
+    rot1:%s
+    exit:%s
+    pause:%s
+  fullscreen:%s
+  show_fps:%s
+  version:%s
+  update_channel:%s
+  update:%s"""%(
+		conf["strg"]["left"],
+		conf["strg"]["right"],
+		conf["strg"]["drop"],
+		conf["strg"]["idrop"],
+		conf["strg"]["rot"],
+		conf["strg"]["rot1"],
+		conf["strg"]["exit"],
+		conf["strg"]["pause"],
+		conf["fullscreen"],
+		conf["show_fps"],
+		conf["version"],
+		conf["update_channel"],
+		conf["update"]))
 		if os.path.exists(os.path.join(os.path.dirname(__file__),".git/")):
 			dprint("Skipped updating because of detected git repository")
 			update=False
