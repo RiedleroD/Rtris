@@ -33,10 +33,15 @@ else:
 		conf=json.load(conffile)
 		strg=conf["strg"]
 try:
-	update=conf["update"]
+	tmp=conf["update"]
+	if tmp == True:
+		update=True # update
+	else:
+		update=None # don't update and don't print message saying to not update
+	# if update is set to False: don't update and print message to not update
 except KeyError:
 	conf["update"]=True
-	update=conf["update"]
+	update=conf["update"] # update
 debug=False
 
 COPYRIGHT_YEAR="2019"
@@ -128,11 +133,10 @@ def opt_version_info(opt, arg):
 	print(VERSION_INFO)
 	exit(0)
 def opt_update(opt, arg):
+	global update
 	if arg != None:
 		raise Exception("%s: too many arguments: 1" % (opt))
-	updater=Updater()
-	updater.update()
-	exit(0)
+	update=True
 
 def dprint(*args, **kwargs):
 	if debug:
@@ -147,7 +151,6 @@ def opt_no_update(opt, arg):
 	global update
 	if arg != None:
 		raise Exception("%s: too many arguments: 1" % (opt))
-	dprint("skipped updating")
 	update=False
 
 # options are stored in this array here as tuples
@@ -252,6 +255,13 @@ if __name__=="__main__":
 			raise Exception("%s: invalid option" % (opt[1]))
 	if len(args) > 0:
 		raise Exception("too many arguments: %d" % (len(args)))
+
+if update == True:
+	updater=Updater()
+	updater.update()
+	exit(0)
+elif update == False:
+	dprint("skipped updating")
 
 pygame.init()
 pygame.freetype.init()
