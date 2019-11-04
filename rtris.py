@@ -201,9 +201,9 @@ if __name__=="__main__":
 							optarg=argv[i + 1]
 							i+=1
 					if option[4]:
-						hpoptqueue.append((option[3], "--" + opt, optarg))
+						hpoptqueue.append((option, "--" + opt, optarg))
 					else:
-						lpoptqueue.append((option[3], "--" + opt, optarg))
+						lpoptqueue.append((option, "--" + opt, optarg))
 					break
 			if not option_found:
 				lpoptqueue.insert(0, (None, "--" + opt))
@@ -226,9 +226,9 @@ if __name__=="__main__":
 								optarg=argv[i + 1]
 								i+=1
 						if option[4]:
-							hpoptqueue.append((option[3], "-" + opt, optarg))
+							hpoptqueue.append((option, "-" + opt, optarg))
 						else:
-							lpoptqueue.append((option[3], "-" + opt, optarg))
+							lpoptqueue.append((option, "-" + opt, optarg))
 						break
 				if not option_found:
 					lpoptqueue.insert(0, (None, "-" + opt))
@@ -241,7 +241,7 @@ if __name__=="__main__":
 		i+=1
 	for opt in [*hpoptqueue, *lpoptqueue]:
 		if opt[0] != None:
-			opt[0](opt[1], opt[2])
+			opt[0][3](opt[1], opt[2])
 		else:
 			raise Exception("%s: invalid option" % (opt[1]))
 	if len(args) > 0:
