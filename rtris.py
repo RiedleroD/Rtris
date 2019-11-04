@@ -21,9 +21,11 @@ HELP="""\
     Start Rtris, a Tetris clone written in Python.
 
     Options:
-      -h, --help      display this summary and exit
-      -V, --version   display version information and exit
-      -d, --debug     print debug information
+      -h, --help        display this summary and exit
+      -V, --version     display version information and exit
+      -d, --debug       print debug information
+      -U, --update      update and exit
+      -u, --no-update   don't automatically update
 
 Report bugs at: https://github.com/RiedleroD/Rtris/issues
 Rtris repository: https://github.com/RiedleroD/Rtris""" % (USAGE)
@@ -93,6 +95,12 @@ def opt_version_info(opt, arg):
 		raise Exception("%s: too many arguments: 1" % (opt))
 	print(VERSION_INFO)
 	exit(0)
+def opt_update(opt, arg):
+	if arg != None:
+		raise Exception("%s: too many arguments: 1" % (opt))
+	updater=Updater()
+	updater.update()
+	exit(0)
 
 debug=False
 def dprint(*args, **kwargs):
@@ -103,6 +111,14 @@ def opt_debug(opt, arg):
 	if arg != None:
 		raise Exception("%s: too many arguments: 1" % (opt))
 	debug=True
+
+update=True
+def opt_no_update(opt, arg):
+	global update
+	if arg != None:
+		raise Exception("%s: too many arguments: 1" % (opt))
+	dprint("skipped updating")
+	update=False
 
 # options are stored in this array here as tuples
 # tuple[0]: array of single character strings representing the short options
@@ -123,7 +139,9 @@ def opt_debug(opt, arg):
 options=[
 	(["h"], ["help"],     False, opt_help,         True),
 	(["V"], ["version"],  False, opt_version_info, True),
-	(["d"], ["debug"],    False, opt_debug,        False)
+	(["d"], ["debug"],    False, opt_debug,        False),
+	(["U"], ["update"],   False, opt_update,       False),
+	(["u"], ["no-update"],False, opt_no_update,    False)
 ]
 
 if __name__=="__main__":
@@ -974,11 +992,12 @@ class MainGame():
 
 if __name__=="__main__":
 	try:
-		updater=Updater()
-		if updater.update():
-			with open(confpath,"w+") as conffile:
-				json.dump(conf,conffile,ensure_ascii=False)
-			os.execv(__file__,argv)
+		if update:
+			updater=Updater()
+			if updater.update():
+				with open(confpath,"w+") as conffile:
+					json.dump(conf,conffile,ensure_ascii=False)
+				os.execv(__file__,argv)
 		game=MainGame()
 		game.menu()
 	finally:
