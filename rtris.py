@@ -6,6 +6,7 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame,pygame.freetype
 from sys import argv
 from urllib import request as req
+from urllib.error import URLError
 
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
@@ -83,15 +84,19 @@ class Updater():
 			raise ValueError("Update method can only be 0, 1 or 2, instead it is "+str(self.meth)+".")
 	def update(self)->bool:
 		"""Returns True if updated, False if already newest version."""
-		tag=self.get_latest_tag()
-		if self.current!=tag:
-			data=self.get_commit(tag)
-			with open(__file__,"wb") as f:
-				f.write(data)
-			print("Updated from "+conf["version"]+" to "+tag+".")
-			conf["version"]=tag
-			return True
-		else:
+		try:
+			tag=self.get_latest_tag()
+			if self.current!=tag:
+				data=self.get_commit(tag)
+				with open(__file__,"wb") as f:
+					f.write(data)
+				print("Updated from "+conf["version"]+" to "+tag+".")
+				conf["version"]=tag
+				return True
+			else:
+				return False
+		except URLError as e:
+			dprint("Couldn't update. Reason:",e)
 			return False
 	def get_commit(self,tag:str)->bytes:
 		data=req.urlopen("https://raw.githubusercontent.com/RiedleroD/Rtris/%s/rtris.py"%tag).read()
