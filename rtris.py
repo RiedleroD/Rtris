@@ -10,7 +10,6 @@ from urllib import request as req
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
 
-VERSION="1.0a3"
 COPYRIGHT_YEAR="2019"
 COPYRIGHT_HOLDER="Riedler"
 AUTHORS="Rielder and Michael Federczuk"
