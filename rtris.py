@@ -10,6 +10,34 @@ from urllib import request as req
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
 
+if not os.path.exists(confpath):
+	strg={"left":pygame.K_LEFT,
+		"right":pygame.K_RIGHT,
+		"drop":pygame.K_UP,
+		"idrop":pygame.K_DOWN,
+		"rot":pygame.K_PAGEUP,
+		"rot1":pygame.K_PAGEDOWN,
+		"exit":pygame.K_ESCAPE,
+		"pause":pygame.K_p}
+	conf={"strg":strg,
+		"fullscreen":False,
+		"show_fps":True,
+		"version":None,
+		"update_channel":2,
+		"update":True}
+	with open(confpath,"w+") as conffile:
+		json.dump(conf,conffile,ensure_ascii=False)
+else:
+	with open(confpath,"r") as conffile:
+		conf=json.load(conffile)
+		strg=conf["strg"]
+try:
+	update=conf["update"]
+except KeyError:
+	conf["update"]=True
+	update=conf["update"]
+debug=False
+
 COPYRIGHT_YEAR="2019"
 COPYRIGHT_HOLDER="Riedler"
 AUTHORS="Rielder and Michael Federczuk"
@@ -35,32 +63,7 @@ License CC BY-SA 4.0: Creative Commons Attribution-ShareAlike 4.0 <http://creati
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
-Written by %s.""" % (VERSION, COPYRIGHT_YEAR, COPYRIGHT_HOLDER, AUTHORS)
-
-if not os.path.exists(confpath):
-	strg={"left":pygame.K_LEFT,
-		"right":pygame.K_RIGHT,
-		"drop":pygame.K_UP,
-		"idrop":pygame.K_DOWN,
-		"rot":pygame.K_PAGEUP,
-		"rot1":pygame.K_PAGEDOWN,
-		"exit":pygame.K_ESCAPE,
-		"pause":pygame.K_p}
-	conf={"strg":strg,
-		"fullscreen":False,
-		"show_fps":True,
-		"version":None,
-		"update_channel":2,
-		"update":True}
-	with open(confpath,"w+") as conffile:
-		json.dump(conf,conffile,ensure_ascii=False)
-else:
-	with open(confpath,"r") as conffile:
-		conf=json.load(conffile)
-		strg=conf["strg"]
-
-update=conf["update"]
-debug=False
+Written by %s.""" % (conf["version"],COPYRIGHT_YEAR, COPYRIGHT_HOLDER, AUTHORS)
 
 class Updater():
 	def __init__(self,update_to:[0,1,2]=None):	#0→Stable,1→Prerelease,2→commit (in master branch),None→config option
@@ -270,7 +273,7 @@ else:
 	HEIGHT=user32.GetSystemMetrics(78)
 	WIDTH=user32.GetSystemMetrics(79)
 
-dprint(WIDTH,HEIGHT)
+dprint("Window size: ",WIDTH,HEIGHT)
 
 BORDER_WIDTH=5
 BLACK=(0,0,0)
