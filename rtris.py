@@ -37,6 +37,31 @@ There is NO WARRANTY, to the extent permitted by law.
 
 Written by %s.""" % (VERSION, COPYRIGHT_YEAR, COPYRIGHT_HOLDER, AUTHORS)
 
+if not os.path.exists(confpath):
+	strg={"left":pygame.K_LEFT,
+		"right":pygame.K_RIGHT,
+		"drop":pygame.K_UP,
+		"idrop":pygame.K_DOWN,
+		"rot":pygame.K_PAGEUP,
+		"rot1":pygame.K_PAGEDOWN,
+		"exit":pygame.K_ESCAPE,
+		"pause":pygame.K_p}
+	conf={"strg":strg,
+		"fullscreen":False,
+		"show_fps":True,
+		"version":None,
+		"update_channel":2,
+		"update":True}
+	with open(confpath,"w+") as conffile:
+		json.dump(conf,conffile,ensure_ascii=False)
+else:
+	with open(confpath,"r") as conffile:
+		conf=json.load(conffile)
+		strg=conf["strg"]
+
+update=conf["update"]
+debug=False
+
 class Updater():
 	def __init__(self,update_to:[0,1,2]=None):	#0→Stable,1→Prerelease,2→commit (in master branch),None→config option
 		self.meth=update_to	#meth→method (hehe)
@@ -101,7 +126,6 @@ def opt_update(opt, arg):
 	updater.update()
 	exit(0)
 
-debug=False
 def dprint(*args, **kwargs):
 	if debug:
 		print(*args, **kwargs)
@@ -111,7 +135,6 @@ def opt_debug(opt, arg):
 		raise Exception("%s: too many arguments: 1" % (opt))
 	debug=True
 
-update=True
 def opt_no_update(opt, arg):
 	global update
 	if arg != None:
@@ -215,26 +238,6 @@ if __name__=="__main__":
 			raise Exception("%s: invalid option" % (opt[1]))
 	if len(args) > 0:
 		raise Exception("too many arguments: %d" % (len(args)))
-if not os.path.exists(confpath):
-	strg={"left":pygame.K_LEFT,
-		"right":pygame.K_RIGHT,
-		"drop":pygame.K_UP,
-		"idrop":pygame.K_DOWN,
-		"rot":pygame.K_PAGEUP,
-		"rot1":pygame.K_PAGEDOWN,
-		"exit":pygame.K_ESCAPE,
-		"pause":pygame.K_p}
-	conf={"strg":strg,
-		"fullscreen":False,
-		"show_fps":True,
-		"version":None,
-		"update_channel":2}
-	with open(confpath,"w+") as conffile:
-		json.dump(conf,conffile,ensure_ascii=False)
-else:
-	with open(confpath,"r") as conffile:
-		conf=json.load(conffile)
-		strg=conf["strg"]
 
 pygame.init()
 pygame.freetype.init()
