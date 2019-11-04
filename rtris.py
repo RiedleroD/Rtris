@@ -881,6 +881,9 @@ class MainGame():
 		else:
 			updtcolr=(255,0,0)
 		self.buttons["update"]=Button(x=RIGHT_SIDE,y=self.buttons["show_fps"].rect.bottom+10,txtcolor=updtcolr,txt="Update",posmeth=(-1,1))
+		uchans=["Stable","Devel","Canary"]
+		self.buttons["uchannel"]=Button(x=RIGHT_SIDE,y=self.buttons["update"].rect.bottom+10,txt=uchans[conf["update_channel"]],posmeth=(-1,1))
+		del updtcolr
 		del fulscrntxt
 		while True:
 			self.draw()
@@ -991,6 +994,11 @@ class MainGame():
 				else:
 					self.buttons["update"].color=(255,0,0)
 				self.buttons["update"].render()
+			elif self.buttons["uchannel"].pressed:
+				self.buttons["uchannel"].pressed=False
+				conf["update_channel"]=(conf["update_channel"]+1)%3
+				self.buttons["uchannel"].txt=uchans[conf["update_channel"]]
+				self.buttons["uchannel"].render()
 	def wait4buttonpress(self):
 		while True:
 			event=pygame.event.wait()
