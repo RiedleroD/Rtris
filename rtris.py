@@ -5,6 +5,7 @@ from numpy import add as np_add
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame,pygame.freetype
 from sys import argv
+from urllib import request as req
 
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
@@ -34,6 +35,53 @@ This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 Written by %s.""" % (VERSION, COPYRIGHT_YEAR, COPYRIGHT_HOLDER, AUTHORS)
+
+class Updater():
+	def __init__(self,update_to:[0,1,2]=None):	#0→Stable,1→Prerelease,2→commit (in master branch),None→config option
+		self.meth=update_to	#meth→method (hehe)
+		if self.meth==None:
+			try:
+				self.meth=conf["update_channel"]
+			except:
+				self.meth=2
+				conf["update_channel"]=self.meth
+		try:
+			self.current=conf["version"]
+		except KeyError:
+			self.current=None
+			conf["version"]=None
+		if self.meth not in (0,1,2):
+			raise ValueError("Update method can only be 0, 1 or 2, instead it is "+str(self.meth)+".")
+	def update(self)->bool:
+		"""Returns True if updated, False if already newest version."""
+		tag=self.get_latest_tag()
+		if self.current!=tag:
+			data=self.get_commit(tag)
+			with open(__file__,"wb") as f:
+				f.write(data)
+			conf["version"]=tag
+			return True
+		else:
+			return False
+	def get_commit(self,tag:str)->bytes:
+		data=req.urlopen("https://raw.githubusercontent.com/RiedleroD/Rtris/%s/rtris.py"%tag).read()
+		return data
+	def get_latest_tag(self)->str:
+		if self.meth==2:
+			info=json.load(req.urlopen("https://api.github.com/repos/RiedleroD/Rtris/commits/master"))
+			latest=info["commit"]["url"].split("/")[-1]
+		elif self.meth in (1,2):
+			info=json.load(req.urlopen("https://api.github.com/repos/RiedleroD/Rtris/releases"))
+			if self.meth==1:
+				info=info[0]
+			elif self.meth==0:
+				for release in info:
+					if not release["prerelease"]:
+						info=release
+						break
+			info=json.load(req.urlopen("https://api.github.com/repos/RiedleroD/Rtris/commits/"+info["tag_name"]))
+			latest=info["commit"]["url"].split("/")[-1]
+		return latest
 
 def opt_help(opt, arg):
 	if arg != None:
@@ -150,24 +198,24 @@ if __name__=="__main__":
 			raise Exception("%s: invalid option" % (opt[1]))
 	if len(args) > 0:
 		raise Exception("too many arguments: %d" % (len(args)))
-	if not os.path.exists(confpath):
-		strg={"left":pygame.K_LEFT,
-			"right":pygame.K_RIGHT,
-			"drop":pygame.K_UP,
-			"idrop":pygame.K_DOWN,
-			"rot":pygame.K_PAGEUP,
-			"rot1":pygame.K_PAGEDOWN,
-			"exit":pygame.K_ESCAPE,
-			"pause":pygame.K_p}
-		conf={"strg":strg,
-			"fullscreen":False,
-			"show_fps":True}
-		with open(confpath,"w+") as conffile:
-			json.dump(conf,conffile,ensure_ascii=False)
-	else:
-		with open(confpath,"r") as conffile:
-			conf=json.load(conffile)
-			strg=conf["strg"]
+if not os.path.exists(confpath):
+	strg={"left":pygame.K_LEFT,
+		"right":pygame.K_RIGHT,
+		"drop":pygame.K_UP,
+		"idrop":pygame.K_DOWN,
+		"rot":pygame.K_PAGEUP,
+		"rot1":pygame.K_PAGEDOWN,
+		"exit":pygame.K_ESCAPE,
+		"pause":pygame.K_p}
+	conf={"strg":strg,
+		"fullscreen":False,
+		"show_fps":True}
+	with open(confpath,"w+") as conffile:
+		json.dump(conf,conffile,ensure_ascii=False)
+else:
+	with open(confpath,"r") as conffile:
+		conf=json.load(conffile)
+		strg=conf["strg"]
 
 pygame.init()
 pygame.freetype.init()
