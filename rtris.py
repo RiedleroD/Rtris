@@ -992,6 +992,9 @@ class MainGame():
 
 if __name__=="__main__":
 	try:
+		if os.path.exists(os.path.join(os.path.dirname(__file__),".git/")):
+			dprint("Skipped updating because of detected git repository")
+			update=False
 		if update:
 			updater=Updater()
 			if updater.update():
