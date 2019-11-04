@@ -876,6 +876,11 @@ class MainGame():
 			fpstxt="Show FPS"
 		self.buttons["fullscreen"]=Button(x=RIGHT_SIDE,y=TOP_SIDE,txt=fulscrntxt,posmeth=(-1,1))
 		self.buttons["show_fps"]=Button(x=RIGHT_SIDE,y=self.buttons["fullscreen"].rect.bottom+10,txt=fpstxt,posmeth=(-1,1))
+		if conf["update"]:
+			updtcolr=(0,255,0)
+		else:
+			updtcolr=(255,0,0)
+		self.buttons["update"]=Button(x=RIGHT_SIDE,y=self.buttons["show_fps"].rect.bottom+10,txtcolor=updtcolr,txt="Update",posmeth=(-1,1))
 		del fulscrntxt
 		while True:
 			self.draw()
@@ -978,6 +983,14 @@ class MainGame():
 				else:
 					self.buttons["show_fps"].txt="Hide FPS"
 				self.buttons["show_fps"].render()
+			elif self.buttons["update"].pressed:
+				self.buttons["update"].pressed=False
+				conf["update"]=not conf["update"]
+				if conf["update"]:
+					self.buttons["update"].color=(0,255,0)
+				else:
+					self.buttons["update"].color=(255,0,0)
+				self.buttons["update"].render()
 	def wait4buttonpress(self):
 		while True:
 			event=pygame.event.wait()
