@@ -209,7 +209,9 @@ if not os.path.exists(confpath):
 		"pause":pygame.K_p}
 	conf={"strg":strg,
 		"fullscreen":False,
-		"show_fps":True}
+		"show_fps":True,
+		"version":None,
+		"update_channel":2}
 	with open(confpath,"w+") as conffile:
 		json.dump(conf,conffile,ensure_ascii=False)
 else:
@@ -971,7 +973,15 @@ class MainGame():
 		return False
 
 if __name__=="__main__":
-	game=MainGame()
-	game.menu()
-	with open(confpath,"w+") as conffile:
-		json.dump(conf,conffile,ensure_ascii=False)
+	try:
+		updater=Updater()
+		if updater.update():
+			with open(confpath,"w+") as conffile:
+				json.dump(conf,conffile,ensure_ascii=False)
+			os.execv(__file__,argv)
+		game=MainGame()
+		game.menu()
+	finally:
+		with open(confpath,"w+") as conffile:
+			json.dump(conf,conffile,ensure_ascii=False)
+
