@@ -59,6 +59,7 @@ class Updater():
 			data=self.get_commit(tag)
 			with open(__file__,"wb") as f:
 				f.write(data)
+			print("Updated from "+conf["version"]+" to "+tag+".")
 			conf["version"]=tag
 			return True
 		else:
