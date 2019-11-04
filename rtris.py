@@ -80,8 +80,7 @@ class Updater():
 					if not release["prerelease"]:
 						info=release
 						break
-			info=json.load(req.urlopen("https://api.github.com/repos/RiedleroD/Rtris/commits/"+info["tag_name"]))
-			latest=info["commit"]["url"].split("/")[-1]
+			latest=info["tag_name"]
 		return latest
 
 def opt_help(opt, arg):
