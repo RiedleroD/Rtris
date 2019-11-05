@@ -13,6 +13,22 @@ from re import match
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
 
+def get_git_head():
+	curdir=os.path.abspath(os.path.dirname(__file__))
+	headfile=os.path.join(curdir,".git/HEAD")
+	if os.path.exists(headfile):
+		with open(headfile,"r") as f:
+			head=f.read()
+		if head.startswith("ref:"):
+			with open(os.path.abspath(os.path.join(curdir,".git/",head.split()[-1])),"r") as f:
+				tag=f.read()
+		else:
+			tag=head
+		print(tag)
+		return tag
+	else:
+		return None
+
 if not os.path.exists(confpath):
 	strg={"left":pygame.K_LEFT,
 		"right":pygame.K_RIGHT,
@@ -25,7 +41,7 @@ if not os.path.exists(confpath):
 	conf={"strg":strg,
 		"fullscreen":False,
 		"show_fps":True,
-		"version":None,
+		"version":get_git_head(),
 		"update_channel":2,
 		"update":True}
 	with open(confpath,"w+") as conffile:
@@ -34,6 +50,12 @@ else:
 	with open(confpath,"r") as conffile:
 		conf=json.load(conffile)
 		strg=conf["strg"]
+
+version=get_git_head()
+if version!=None:
+	conf["version"]=version
+del version
+
 try:
 	update=conf["update"]
 except KeyError:
