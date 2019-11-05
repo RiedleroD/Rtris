@@ -6,6 +6,16 @@ Licensed under `CC BY-SA 4.0`.
 If you want to contribute, just do it. If there's something about your contribution that I don't like, I'll tell you or change it myself. Just do it.
 If you want to be a playtester, write an email to riedler@gelse.net or join the playtesting group on [Telegram](t.me/RtrisTest).
 
+### Command-line arguments
+
+| Short | Long | Description|
+|--|--|--|
+|-h|--help|Displays a help message|
+|-V|--version|Displays the Version of the script|
+|-U|--update|Updates the script instantly and exits|
+|-u|--no-update|Skips automatic update|
+|-d|--debug|Prints debug messages|
+
 ### CHANGELOG
 
 v1.0<sub>unfinished</sub>
