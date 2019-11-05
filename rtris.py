@@ -93,9 +93,12 @@ class Updater():
 				conf["version"]=tag
 				return True
 			else:
+				print("Already newest",("Release.","Prerelease.","commit.")[conf["update_channel"]])
 				return False
 		except URLError as e:
-			dprint("Couldn't update. Reason:",e)
+			print("Couldn't update.",end=" ")
+			dprint("Reason:",e,end="")
+			print()
 			return False
 	def get_commit(self,tag:str)->bytes:
 		data=req.urlopen("https://raw.githubusercontent.com/RiedleroD/Rtris/%s/rtris.py"%tag).read()
