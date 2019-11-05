@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 # coding: utf-8
-import os,random,math,json,subprocess
+import os,random,math,json
+from subprocess import PIPE as subPIPE
+from subprocess import Popen as subPopen
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame,pygame.freetype
 from sys import argv
@@ -267,7 +269,7 @@ except:
 		from AppKit import NSScreen	#Mac OS X specific
 	except:
 		try:
-			w,h=subprocess.Popen(["xrandr | grep '*'"],shell=True,stdout=subprocess.PIPE).communicate()[0].split()[0].split(b"x")
+			w,h=subPopen(["xrandr | grep '*'"],shell=True,stdout=subPIPE).communicate()[0].split()[0].split(b"x")
 		except Exception as e:
 			dprint("Uhh... everything failed style")
 			_dispinfo=pygame.display.Info()	#When everythin fails, I.E. on not windows-, linux- or MacOS-based machines.
