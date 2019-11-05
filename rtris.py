@@ -131,6 +131,8 @@ def opt_update(opt, arg):
 		raise Exception("%s: too many arguments: 1" % (opt))
 	updater=Updater()
 	updater.update()
+	with open(confpath,"w+") as conffile:
+		json.dump(conf,conffile,ensure_ascii=False)
 	exit(0)
 
 def dprint(*args, **kwargs):
