@@ -165,12 +165,16 @@ def opt_no_update(opt, arg):
 #            checking for invalid options and BEFORE the low priority options.
 #            if False, the option is low priority and will be executed AFTER
 #            checking for invalid options and AFTER the high priority options
+# tuple[5]: number specifying the exact priority. options with higher priority
+#            are executed before lower ones.
+#           position of passed down argument decides what option to execute
+#            first when priority is the same
 options=[
-	(["h"], ["help"],     False, opt_help,         True),
-	(["V"], ["version"],  False, opt_version_info, True),
-	(["d"], ["debug"],    False, opt_debug,        False),
-	(["U"], ["update"],   False, opt_update,       False),
-	(["u"], ["no-update"],False, opt_no_update,    False)
+	(["h"], ["help"],      False, opt_help,         True,  0),
+	(["V"], ["version"],   False, opt_version_info, True,  0),
+	(["d"], ["debug"],     False, opt_debug,        False, 1),
+	(["U"], ["update"],    False, opt_update,       False, 0),
+	(["u"], ["no-update"], False, opt_no_update,    False, 0)
 ]
 
 if __name__=="__main__":
@@ -200,9 +204,9 @@ if __name__=="__main__":
 							optarg=argv[i + 1]
 							i+=1
 					if option[4]:
-						hpoptqueue.append((option[3], "--" + opt, optarg))
+						hpoptqueue.append((option, "--" + opt, optarg))
 					else:
-						lpoptqueue.append((option[3], "--" + opt, optarg))
+						lpoptqueue.append((option, "--" + opt, optarg))
 					break
 			if not option_found:
 				lpoptqueue.insert(0, (None, "--" + opt))
@@ -225,9 +229,9 @@ if __name__=="__main__":
 								optarg=argv[i + 1]
 								i+=1
 						if option[4]:
-							hpoptqueue.append((option[3], "-" + opt, optarg))
+							hpoptqueue.append((option, "-" + opt, optarg))
 						else:
-							lpoptqueue.append((option[3], "-" + opt, optarg))
+							lpoptqueue.append((option, "-" + opt, optarg))
 						break
 				if not option_found:
 					lpoptqueue.insert(0, (None, "-" + opt))
@@ -238,9 +242,11 @@ if __name__=="__main__":
 			else:
 				args.append(arg)
 		i+=1
+	hpoptqueue.sort(key=lambda opt: opt[0][5], reverse=True)
+	lpoptqueue.sort(key=lambda opt: opt[0][5], reverse=True)
 	for opt in [*hpoptqueue, *lpoptqueue]:
 		if opt[0] != None:
-			opt[0](opt[1], opt[2])
+			opt[0][3](opt[1], opt[2])
 		else:
 			raise Exception("%s: invalid option" % (opt[1]))
 	if len(args) > 0:
