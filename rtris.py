@@ -188,6 +188,7 @@ options=[
 if __name__=="__main__":
 	args=[]
 	hpoptqueue=[] # high priority option queue
+	firstinvopt=None # first seen invalid option
 	lpoptqueue=[] # low priority option queue
 	ignopt=False
 	i=1
@@ -215,8 +216,8 @@ if __name__=="__main__":
 					else:
 						lpoptqueue.append((option, "--" + opt, optarg))
 					break
-			if not option_found:
-				lpoptqueue.insert(0, (None, "--" + opt))
+			if not option_found and firstinvopt==None:
+				firstinvopt="--" + opt
 		elif shortmatch != None:
 			opts=shortmatch.group(1)
 			c=0
@@ -240,8 +241,8 @@ if __name__=="__main__":
 						else:
 							lpoptqueue.append((option, "-" + opt, optarg))
 						break
-				if not option_found:
-					lpoptqueue.insert(0, (None, "-" + opt))
+				if not option_found and firstinvopt==None:
+					firstinvopt="-" + opt
 				c+=1
 		else:
 			if not ignopt and arg == "--":
@@ -249,13 +250,14 @@ if __name__=="__main__":
 			else:
 				args.append(arg)
 		i+=1
-	hpoptqueue.sort(key=lambda opt: opt[0][5] if opt[0]!=None else 0, reverse=True)
-	lpoptqueue.sort(key=lambda opt: opt[0][5] if opt[0]!=None else 0, reverse=True)
-	for opt in [*hpoptqueue, *lpoptqueue]:
-		if opt[0] != None:
-			opt[0][3](opt[1], opt[2])
-		else:
-			raise Exception("%s: invalid option" % (opt[1]))
+	hpoptqueue.sort(key=lambda opt: opt[0][5], reverse=True)
+	lpoptqueue.sort(key=lambda opt: opt[0][5], reverse=True)
+	for opt in hpoptqueue:
+		opt[0][3](opt[1], opt[2])
+	if firstinvopt!=None:
+		raise Exception("%s: invalid option" % (firstinvopt))
+	for opt in lpoptqueue:
+		opt[0][3](opt[1], opt[2])
 	if len(args) > 0:
 		raise Exception("too many arguments: %d" % (len(args)))
 
