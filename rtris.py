@@ -24,7 +24,6 @@ def get_git_head():
 				tag=f.read()
 		else:
 			tag=head
-		print(tag)
 		return tag
 	else:
 		return None
