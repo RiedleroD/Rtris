@@ -428,13 +428,7 @@ class Block():
 		else:
 			raise ValueError("Invalid block type: "+str(typ))
 	def rectmatrix(self,matrix:list):
-		x=self.x
-		y=self.y
-		omat=[[[x,y],[x,y],[x,y],[x,y]],
-			[[x,y],[x,y],[x,y],[x,y]],
-			[[x,y],[x,y],[x,y],[x,y]],
-			[[x,y],[x,y],[x,y],[x,y]]]
-		return np_add(omat,matrix).tolist()
+		return [[[matrix[j][i][0]+self.x,matrix[j][i][1]+self.y] for i in range(4)] for j in range(4)]
 	def get_poss(self):
 		return self.rects[self.rotation]
 	def get_posxs(self):
