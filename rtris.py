@@ -242,8 +242,8 @@ if __name__=="__main__":
 			else:
 				args.append(arg)
 		i+=1
-	hpoptqueue.sort(key=lambda opt: opt[0][5], reverse=True)
-	lpoptqueue.sort(key=lambda opt: opt[0][5], reverse=True)
+	hpoptqueue.sort(key=lambda opt: opt[0][5] if opt[0]!=None else 0, reverse=True)
+	lpoptqueue.sort(key=lambda opt: opt[0][5] if opt[0]!=None else 0, reverse=True)
 	for opt in [*hpoptqueue, *lpoptqueue]:
 		if opt[0] != None:
 			opt[0][3](opt[1], opt[2])
