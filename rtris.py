@@ -6,6 +6,7 @@ import pygame,pygame.freetype
 from sys import argv
 from urllib import request as req
 from urllib.error import URLError
+from re import match
 
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
@@ -183,7 +184,6 @@ options=[
 ]
 
 if __name__=="__main__":
-	from re import match
 	args=[]
 	hpoptqueue=[] # high priority option queue
 	lpoptqueue=[] # low priority option queue
