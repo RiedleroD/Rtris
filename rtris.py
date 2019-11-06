@@ -24,7 +24,7 @@ def get_git_head():
 				tag=f.read()
 		else:
 			tag=head
-		return tag
+		return tag.replace(" ","").replace("\n","")
 	else:
 		return None
 
