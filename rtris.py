@@ -40,6 +40,7 @@ if not os.path.exists(confpath):
 	conf={"strg":strg,
 		"fullscreen":False,
 		"show_fps":True,
+		"max_fps":60,
 		"version":get_git_head(),
 		"update_channel":2,
 		"update":True}
@@ -61,6 +62,11 @@ except KeyError:
 	conf["update"]=True
 	update=conf["update"]
 debug=False
+
+try:
+	conf["max_fps"]
+except KeyError:
+	conf["max_fps"]=60
 
 COPYRIGHT_YEAR="2019"
 COPYRIGHT_HOLDER="Riedler"
@@ -338,6 +344,21 @@ pygame.display.set_caption("RTris")
 
 scorefont=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",30)
 
+def pygame_input(txt:str="")->str:
+	char=""
+	chars=txt
+	while True:
+		event=pygame.event.wait()
+		if event.type==pygame.KEYDOWN:
+			char=event.key
+			if char==pygame.K_BACKSPACE:
+				chars=chars[:-1]
+			elif char in (pygame.K_ESCAPE,pygame.K_RETURN):
+				break
+			else:
+				chars+=pygame.key.name(char)
+		yield chars
+		
 class Block():
 	alive=True
 	def __init__(self,typ:int=random.randrange(7),x:int=0,y:int=0):
@@ -860,7 +881,7 @@ class MainGame():
 			self.draw()
 			if self.board.ended:
 				self.end()
-			self.board.clock.tick(60)
+			self.board.clock.tick(conf["max_fps"])
 		self.speed=0
 	def menu(self):
 		self.buttons={}
@@ -910,11 +931,12 @@ class MainGame():
 			fpstxt="Show FPS"
 		self.buttons["fullscreen"]=Button(x=RIGHT_SIDE,y=TOP_SIDE,txt=fulscrntxt,posmeth=(-1,1))
 		self.buttons["show_fps"]=Button(x=RIGHT_SIDE,y=self.buttons["fullscreen"].rect.bottom+10,txt=fpstxt,posmeth=(-1,1))
+		self.buttons["max_fps"]=Button(x=RIGHT_SIDE,y=self.buttons["show_fps"].rect.bottom+10,txt="FPS: "+str(conf["max_fps"]),posmeth=(-1,1))
 		if conf["update"]:
 			updtcolr=(0,255,0)
 		else:
 			updtcolr=(255,0,0)
-		self.buttons["update"]=Button(x=RIGHT_SIDE,y=self.buttons["show_fps"].rect.bottom+10,txtcolor=updtcolr,txt="Update",posmeth=(-1,1))
+		self.buttons["update"]=Button(x=RIGHT_SIDE,y=self.buttons["max_fps"].rect.bottom+10,txtcolor=updtcolr,txt="Update",posmeth=(-1,1))
 		uchans=["Stable","Devel","Canary"]
 		self.buttons["uchannel"]=Button(x=RIGHT_SIDE,y=self.buttons["update"].rect.bottom+10,txt=uchans[conf["update_channel"]],posmeth=(-1,1))
 		del updtcolr
@@ -1020,6 +1042,21 @@ class MainGame():
 				else:
 					self.buttons["show_fps"].txt="Hide FPS"
 				self.buttons["show_fps"].render()
+			elif self.buttons["max_fps"].pressed:
+				self.buttons["max_fps"].txt="["+str(conf["max_fps"])+"]"
+				self.buttons["max_fps"].render()
+				self.draw()
+				for inpot in pygame_input(str(conf["max_fps"])):
+					self.buttons["max_fps"].txt="["+inpot+"]"
+					self.buttons["max_fps"].render()
+					self.draw()
+				try:
+					conf["max_fps"]=abs(int(self.buttons["max_fps"].txt[1:-1]))
+				except ValueError:
+					pass
+				self.buttons["max_fps"].txt="FPS: "+str(conf["max_fps"])
+				self.buttons["max_fps"].render()
+				self.buttons["max_fps"].pressed=False
 			elif self.buttons["update"].pressed:
 				self.buttons["update"].pressed=False
 				conf["update"]=not conf["update"]
@@ -1064,6 +1101,7 @@ if __name__=="__main__":
     pause:%s
   fullscreen:%s
   show_fps:%s
+  max_fps:%s
   version:%s
   update_channel:%s
   update:%s"""%(
@@ -1077,6 +1115,7 @@ if __name__=="__main__":
 		conf["strg"]["pause"],
 		conf["fullscreen"],
 		conf["show_fps"],
+		conf["max_fps"],
 		conf["version"],
 		conf["update_channel"],
 		conf["update"]))
