@@ -19,7 +19,18 @@ If you want to be a playtester, write an email to riedler@gelse.net or join the 
 ### CHANGELOG
 
 v1.0<sub>unfinished</sub>
-
+- v1.0a4
+  - heavy optimization
+  - you can now double-click Rtris.py and it executes directly
+  - added automatic updater
+    - you can disable it in the settings
+    - you can change the update channel in the settings
+    - skips update if git repo is detected
+    - automatically grabs version from .git folder if existent
+  - added command-line arguments
+  - added Logo
+  - added debug messages
+  - added max. FPS setting
 - v1.0a3
 	- added the option to show fps
 	- heavy optimisations (up to 3 times faster on my Laptop)
