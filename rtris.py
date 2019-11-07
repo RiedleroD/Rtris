@@ -14,7 +14,10 @@ K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
 
 def get_git_head():
-	curdir=os.path.abspath(os.path.dirname(__file__))
+	try:
+		curdir=os.path.abspath(os.path.dirname(__file__))
+	except NameError:	#For when the script is compiled - the constant __file__ doesn't exist then
+		return None
 	headfile=os.path.join(curdir,".git/HEAD")
 	if os.path.exists(headfile):
 		with open(headfile,"r") as f:
@@ -1119,15 +1122,18 @@ if __name__=="__main__":
 		conf["version"],
 		conf["update_channel"],
 		conf["update"]))
-		if os.path.exists(os.path.join(os.path.dirname(__file__),".git/")):
-			dprint("Skipped updating because of detected git repository")
-			update=False
-		if update:
-			updater=Updater()
-			if updater.update():
-				with open(confpath,"w+") as conffile:
-					json.dump(conf,conffile,ensure_ascii=False)
-				os.execv(__file__,argv)
+		try:
+			if os.path.exists(os.path.join(os.path.dirname(__file__),".git/")):
+				dprint("Skipped updating because of detected git repository")
+				update=False
+			if update:
+				updater=Updater()
+				if updater.update():
+					with open(confpath,"w+") as conffile:
+						json.dump(conf,conffile,ensure_ascii=False)
+					os.execv(__file__,argv)
+		except NameError:
+			dprint("Skipped updating because this is compiled.")
 		game=MainGame()
 		game.menu()
 	finally:
