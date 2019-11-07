@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from cx_Freeze import setup, Executable
 build_exe_options = {"excludes":["pydoc"]}
 
