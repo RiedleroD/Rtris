@@ -45,7 +45,7 @@ if not os.path.exists(confpath):
 		"show_fps":True,
 		"max_fps":60,
 		"version":get_git_head(),
-		"update_channel":2,
+		"update_channel":0,
 		"update":True}
 	with open(confpath,"w+") as conffile:
 		json.dump(conf,conffile,ensure_ascii=False)
@@ -105,7 +105,7 @@ class Updater():
 			try:
 				self.meth=conf["update_channel"]
 			except:
-				self.meth=2
+				self.meth=0
 				conf["update_channel"]=self.meth
 		try:
 			self.current=conf["version"]
