@@ -211,18 +211,17 @@ def opt_fps(opt, arg):
 #           checking for invalid options and AFTER the high priority options
 # tuple[5]: number specifying the exact priority. options with higher priority are executed before lower ones. position of passed down argument decides what option to execute first when priority is the same
 options=[
-	(["h"], ["help"],      False, opt_help,         True,  1),
-	(["V"], ["version"],   False, opt_version_info, True,  0),
-	(["d"], ["debug"],     False, opt_debug,        False, 3),
-	(["U"], ["update"],    False, opt_update,       False, 1),
-	(["u"], ["no-update"], False, opt_no_update,    False, 2),
-	(["f"], ["fps"],       True,  opt_fps,			False, 0)]
+	(["h"], ["help"],      False, opt_help,         5),
+	(["V"], ["version"],   False, opt_version_info, 4),
+	(["d"], ["debug"],     False, opt_debug,        3),
+	(["u"], ["no-update"], False, opt_no_update,    2),
+	(["U"], ["update"],    False, opt_update,       1),
+	(["f"], ["fps"],       True,  opt_fps,			0)]
 
 if __name__=="__main__":
 	invalid=""
 	isvalue=False
-	hpoptqueue=[]
-	lpoptqueue=[]
+	optqueue=[]
 	for i,arg in enumerate(argv):
 		if isvalue:
 			isvalue=False
@@ -236,30 +235,22 @@ if __name__=="__main__":
 		else:
 			unknown=True
 			for option in options:
-				if match.group("s") in option[0] or match.group("l") in option[1]:
+				if (match.group("s") in option[0]) or (match.group("l") in option[1]):
 					value=None
 					unknown=False
-					if option[3]:
-						if i+1<len(argv):
-							value=argv[i+1]
-							isvalue=True
-						else:
-							raise CommonCode(3,arg,"FPS")	
-					if option[4]:
-						hpoptqueue.append([option,arg,value])
-					else:
-						lpoptqueue.append([option,arg,value])
+					if option[2] and i+1<len(argv):
+						value=argv[i+1]
+						isvalue=True
+					optqueue.append([option,arg,value])
+					break
 			if unknown:
 				raise CommonCode(5,arg)
 	if invalid:
 		raise CommonCode(64,invalid)
-	hpoptqueue.sort(key=lambda opt: opt[0][5], reverse=True)
-	lpoptqueue.sort(key=lambda opt: opt[0][5], reverse=True)
-	for opt in hpoptqueue:
+	optqueue.sort(key=lambda opt: opt[0][4], reverse=True)
+	for opt in optqueue:
 		opt[0][3](opt[1], opt[2])
-	for opt in lpoptqueue:
-		opt[0][3](opt[1], opt[2])
-	dprint("Options:",*[arg[1] for arg in hpoptqueue],*[arg[1] for arg in lpoptqueue],sep="\n\t",flush=True)
+	dprint("Options:",*[arg[1]+":"+"&".join([str(value) for value in arg[2:]]) for arg in optqueue],sep="\n\t",flush=True)
 
 pygame.init()
 pygame.freetype.init()
