@@ -8,7 +8,9 @@ import pygame,pygame.freetype
 from sys import argv
 from urllib import request as req
 from urllib.error import URLError
-from re import match
+from re import fullmatch
+from commoncodes import CommonCode,settb
+settb(False)
 
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
@@ -113,7 +115,7 @@ class Updater():
 			self.current=None
 			conf["version"]=None
 		if self.meth not in (0,1,2):
-			raise ValueError("Update method can only be 0, 1 or 2, instead it is "+str(self.meth)+".")
+			raise CommonCode("Update method can only be 0, 1 or 2, instead it is "+str(self.meth)+".")
 	def update(self)->bool:
 		"""Returns True if updated, False if already newest version."""
 		try:
@@ -154,17 +156,17 @@ class Updater():
 
 def opt_help(opt, arg):
 	if arg != None:
-		raise Exception("%s: too many arguments: 1" % (opt))
+		raise CommonCode(4,opt,arg)
 	print(HELP)
 	exit(0)
 def opt_version_info(opt, arg):
 	if arg != None:
-		raise Exception("%s: too many arguments: 1" % (opt))
+		raise CommonCode(4,opt,arg)
 	print(VERSION_INFO)
 	exit(0)
 def opt_update(opt, arg):
 	if arg != None:
-		raise Exception("%s: too many arguments: 1" % (opt))
+		raise CommonCode(4,opt,arg)
 	updater=Updater()
 	updater.update()
 	with open(confpath,"w+") as conffile:
@@ -177,119 +179,87 @@ def dprint(*args, **kwargs):
 def opt_debug(opt, arg):
 	global debug
 	if arg != None:
-		raise Exception("%s: too many arguments: 1" % (opt))
+		raise CommonCode(4,opt,arg)
 	debug=True
 
 def opt_no_update(opt, arg):
 	global update
 	if arg != None:
-		raise Exception("%s: too many arguments: 1" % (opt))
+		raise CommonCode(4,opt,arg)
 	dprint("skipped updating")
 	update=False
+
+def opt_fps(opt, arg):
+	if arg==None:
+		raise CommonCode(3,opt,"FPS")
+	else:
+		try:
+			if int(arg)<0:
+				raise CommonCode(11,opt,arg,">=0")
+			else:
+				conf["max_fps"]=int(arg)
+		except ValueError:
+			raise CommonCode(10,opt,arg)
 
 # options are stored in this array here as tuples
 # tuple[0]: array of single character strings representing the short options
 # tuple[1]: array of strings representing the long options
-# tuple[2]: boolean value that decides whether or not the option requires an
-#            argument. if no argument is given, the handler will still be passed
-#            a None value, so the handler has to check for a missing argument
-# tuple[3]: the option handler function.
-#            the first parameter will be the name of the option used in the
-#            command line with the dashes. (e.g.: "-h", "--help", ...)
-#            the second parameter will be the argument given to the option on
-#            the command line. it doesn't matter what the value of tuple[2] is,
-#            this parameter can either be a string or None
-# tuple[4]: if True, the option is high priority and will be executed BEFORE
-#            checking for invalid options and BEFORE the low priority options.
-#            if False, the option is low priority and will be executed AFTER
-#            checking for invalid options and AFTER the high priority options
-# tuple[5]: number specifying the exact priority. options with higher priority
-#            are executed before lower ones.
-#           position of passed down argument decides what option to execute
-#            first when priority is the same
+# tuple[2]: boolean value that decides whether or not the option requires an argument. if no argument is given, the handler will still be passed a None value, so the handler has to check for a missing argument
+# tuple[3]: the option handler function. The first parameter will be the name of the option used in the command line with the dashes. (e.g.: "-h", "--help", ...) the second parameter will be the argument given
+#           to the option on the command line. it doesn't matter what the value of tuple[2] is, this parameter can either be a string or None
+# tuple[4]: if True, the option is high priority and will be executed BEFORE checking for invalid options and BEFORE the low priority options. if False, the option is low priority and will be executed AFTER
+#           checking for invalid options and AFTER the high priority options
+# tuple[5]: number specifying the exact priority. options with higher priority are executed before lower ones. position of passed down argument decides what option to execute first when priority is the same
 options=[
-	(["h"], ["help"],      False, opt_help,         True,  0),
+	(["h"], ["help"],      False, opt_help,         True,  1),
 	(["V"], ["version"],   False, opt_version_info, True,  0),
-	(["d"], ["debug"],     False, opt_debug,        False, 1),
-	(["U"], ["update"],    False, opt_update,       False, 0),
-	(["u"], ["no-update"], False, opt_no_update,    False, 0)
-]
+	(["d"], ["debug"],     False, opt_debug,        False, 3),
+	(["U"], ["update"],    False, opt_update,       False, 1),
+	(["u"], ["no-update"], False, opt_no_update,    False, 2),
+	(["f"], ["fps"],       True,  opt_fps,			False, 0)]
 
 if __name__=="__main__":
-	args=[]
-	hpoptqueue=[] # high priority option queue
-	firstinvopt=None # first seen invalid option
-	lpoptqueue=[] # low priority option queue
-	ignopt=False
-	i=1
-	argc=len(argv)
-	while i < argc:
-		arg=argv[i]
-		longmatch=None
-		shortmatch=None
-		if not ignopt:
-			longmatch=match(r"^--([^=]+)(=(.*))?$", arg)
-			shortmatch=match(r"^-([^-].*)$", arg)
-		if longmatch != None:
-			opt=longmatch.group(1)
-			optarg=longmatch.group(3)
-			option_found=False
-			for option in options:
-				if opt in option[1]:
-					option_found=True
-					if option[2] and optarg == None:
-						if i + 1 < argc:
-							optarg=argv[i + 1]
-							i+=1
-					if option[4]:
-						hpoptqueue.append((option, "--" + opt, optarg))
-					else:
-						lpoptqueue.append((option, "--" + opt, optarg))
-					break
-			if not option_found and firstinvopt==None:
-				firstinvopt="--" + opt
-		elif shortmatch != None:
-			opts=shortmatch.group(1)
-			c=0
-			l=len(opts)
-			while c < l:
-				opt=opts[c]
-				option_found=False
-				for option in options:
-					if opt in option[0]:
-						option_found=True
-						optarg=None
-						if option[2]:
-							if c + 1 < l:
-								optarg=opts[c + 1:]
-								c=l
-							elif i + 1 < argc:
-								optarg=argv[i + 1]
-								i+=1
-						if option[4]:
-							hpoptqueue.append((option, "-" + opt, optarg))
-						else:
-							lpoptqueue.append((option, "-" + opt, optarg))
-						break
-				if not option_found and firstinvopt==None:
-					firstinvopt="-" + opt
-				c+=1
-		else:
-			if not ignopt and arg == "--":
-				ignopt=True
+	invalid=""
+	isvalue=False
+	hpoptqueue=[]
+	lpoptqueue=[]
+	for i,arg in enumerate(argv):
+		if isvalue:
+			isvalue=False
+			continue
+		match=fullmatch(r"^-(-(?P<l>[^-].+)|(?P<s>[^-]))$",arg)
+		if match==None:
+			if arg.startswith("-") or arg.endswith("-"):
+				invalid+="\n  Invalid argument: "+arg
 			else:
-				args.append(arg)
-		i+=1
+				continue
+		else:
+			unknown=True
+			for option in options:
+				if match.group("s") in option[0] or match.group("l") in option[1]:
+					value=None
+					unknown=False
+					if option[3]:
+						if i+1<len(argv):
+							value=argv[i+1]
+							isvalue=True
+						else:
+							raise CommonCode(3,arg,"FPS")	
+					if option[4]:
+						hpoptqueue.append([option,arg,value])
+					else:
+						lpoptqueue.append([option,arg,value])
+			if unknown:
+				raise CommonCode(5,arg)
+	if invalid:
+		raise CommonCode(64,invalid)
 	hpoptqueue.sort(key=lambda opt: opt[0][5], reverse=True)
 	lpoptqueue.sort(key=lambda opt: opt[0][5], reverse=True)
 	for opt in hpoptqueue:
 		opt[0][3](opt[1], opt[2])
-	if firstinvopt!=None:
-		raise Exception("%s: invalid option" % (firstinvopt))
 	for opt in lpoptqueue:
 		opt[0][3](opt[1], opt[2])
-	if len(args) > 0:
-		raise Exception("too many arguments: %d" % (len(args)))
+	dprint("Options:",*[arg[1] for arg in hpoptqueue],*[arg[1] for arg in lpoptqueue],sep="\n\t",flush=True)
 
 pygame.init()
 pygame.freetype.init()
@@ -1092,36 +1062,7 @@ class MainGame():
 
 if __name__=="__main__":
 	try:
-		dprint("""Configurations:
-  strg:
-    left:%s
-    right:%s
-    drop:%s
-    idrop:%s
-    rot:%s
-    rot1:%s
-    exit:%s
-    pause:%s
-  fullscreen:%s
-  show_fps:%s
-  max_fps:%s
-  version:%s
-  update_channel:%s
-  update:%s"""%(
-		conf["strg"]["left"],
-		conf["strg"]["right"],
-		conf["strg"]["drop"],
-		conf["strg"]["idrop"],
-		conf["strg"]["rot"],
-		conf["strg"]["rot1"],
-		conf["strg"]["exit"],
-		conf["strg"]["pause"],
-		conf["fullscreen"],
-		conf["show_fps"],
-		conf["max_fps"],
-		conf["version"],
-		conf["update_channel"],
-		conf["update"]))
+		dprint("Configurations:\n  strg:\n    left:%s\n    right:%s\n    drop:%s\n    idrop:%s\n    rot:%s\n    rot1:%s\n    exit:%s\n    pause:%s\n  fullscreen:%s\n  show_fps:%s\n  max_fps:%s\n  version:%s\n  update_channel:%s\n  update:%s"%(conf["strg"]["left"],conf["strg"]["right"],conf["strg"]["drop"],conf["strg"]["idrop"],conf["strg"]["rot"],conf["strg"]["rot1"],conf["strg"]["exit"],conf["strg"]["pause"],conf["fullscreen"],conf["show_fps"],	conf["max_fps"],conf["version"],conf["update_channel"],conf["update"]))
 		try:
 			if os.path.exists(os.path.join(os.path.dirname(__file__),".git/")):
 				dprint("Skipped updating because of detected git repository")
