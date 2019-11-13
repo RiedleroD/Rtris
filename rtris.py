@@ -184,6 +184,7 @@ def opt_debug(opt, args):
 	if args != []:
 		raise CommonCode(4,opt,args)
 	debug=True
+	settb(True)
 
 def opt_no_update(opt, args):
 	global update
