@@ -88,6 +88,8 @@ HELP="""\
       -d, --debug       print debug information
       -U, --update      update and exit
       -u, --no-update   don't automatically update
+      -w, --window      (fullscreen,1|borderless,0) set window mode
+      -f, --fps         <FPS> set maximum fps
 
 Report bugs at: https://github.com/RiedleroD/Rtris/issues
 Rtris repository: https://github.com/RiedleroD/Rtris""" % (USAGE)
