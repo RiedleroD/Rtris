@@ -4,6 +4,7 @@ import os,random,math,json
 from subprocess import PIPE as subPIPE
 from subprocess import Popen as subPopen
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+os.environ['SDL_VIDEO_WINDOW_POS'] = "0,0"
 import pygame,pygame.freetype
 from sys import argv
 from urllib import request as req
