@@ -204,6 +204,28 @@ def opt_fps(opt, args):
 		except ValueError:
 			raise CommonCode(10,opt,arg)
 
+def opt_window(opt, args):
+	if args==[]:
+		raise CommonCode(3,opt,"Window Mode")
+	elif len(args)>1:
+		raise CommonCode(4,opt,args)
+	else:
+		arg=args[0].lower()
+		try:
+			arg=int(arg)
+		except ValueError:
+			if arg in ("borderless","windowed","window","false","w"):
+				conf["fullscreen"]=False
+			elif arg in ("fullscreen","full","true","f"):
+				conf["fullscreen"]=True
+			else:
+				raise CommonCode(7,opt,arg,": can only be one of (borderless,windowed,window,false,w,0,fullscreen,full,true,f,1)")
+		else:
+			if arg in (0,1):
+				conf["fullscreen"]=bool(arg)
+			else:
+				raise CommonCode(11,opt,str(arg),"0,1")
+
 # options are stored in this array here as tuples
 # tuple[0]: array of single character strings representing the short options
 # tuple[1]: array of strings representing the long options
@@ -214,11 +236,12 @@ def opt_fps(opt, args):
 #           checking for invalid options and AFTER the high priority options
 # tuple[5]: number specifying the exact priority. options with higher priority are executed before lower ones. position of passed down argument decides what option to execute first when priority is the same
 options=[
-	(["h"], ["help"],      0, opt_help,         5),
-	(["V"], ["version"],   0, opt_version_info, 4),
-	(["d"], ["debug"],     0, opt_debug,        3),
-	(["u"], ["no-update"], 0, opt_no_update,    2),
-	(["U"], ["update"],    0, opt_update,       1),
+	(["h"], ["help"],      0, opt_help,         6),
+	(["V"], ["version"],   0, opt_version_info, 5),
+	(["d"], ["debug"],     0, opt_debug,        4),
+	(["u"], ["no-update"], 0, opt_no_update,    3),
+	(["U"], ["update"],    0, opt_update,       2),
+	(["w"], ["window"],    1, opt_window,       1),
 	(["f"], ["fps"],       1, opt_fps,			0)]
 
 if __name__=="__main__":
