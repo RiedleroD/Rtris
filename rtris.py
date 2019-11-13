@@ -293,7 +293,7 @@ except:
 		try:
 			w,h=subPopen(["xrandr | grep '*'"],shell=True,stdout=subPIPE).communicate()[0].split()[0].split(b"x")
 		except Exception as e:
-			dprint("Uhh... everything failed style")
+			dprint("\"Last Resort\" style")
 			_dispinfo=pygame.display.Info()	#When everythin fails, I.E. on not windows-, linux- or MacOS-based machines.
 			HEIGHT=_dispinfo.current_h
 			WIDTH=_dispinfo.current_w
