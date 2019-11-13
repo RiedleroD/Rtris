@@ -309,8 +309,8 @@ else:
 	dprint("Windows style")
 	user32=windll.user32	#yep, windows fully through
 	user32.SetProcessDPIAware()
-	HEIGHT=user32.GetSystemMetrics(78)
-	WIDTH=user32.GetSystemMetrics(79)
+	HEIGHT=user32.GetSystemMetrics(79)
+	WIDTH=user32.GetSystemMetrics(78)
 
 dprint("Window size: ",WIDTH,HEIGHT)
 
