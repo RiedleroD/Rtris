@@ -154,19 +154,19 @@ class Updater():
 			latest=info["tag_name"]
 		return latest
 
-def opt_help(opt, arg):
-	if arg != None:
-		raise CommonCode(4,opt,arg)
+def opt_help(opt, args):
+	if args != []:
+		raise CommonCode(4,opt,args)
 	print(HELP)
 	exit(0)
-def opt_version_info(opt, arg):
-	if arg != None:
-		raise CommonCode(4,opt,arg)
+def opt_version_info(opt, args):
+	if args != []:
+		raise CommonCode(4,opt,args)
 	print(VERSION_INFO)
 	exit(0)
-def opt_update(opt, arg):
-	if arg != None:
-		raise CommonCode(4,opt,arg)
+def opt_update(opt, args):
+	if args != []:
+		raise CommonCode(4,opt,args)
 	updater=Updater()
 	updater.update()
 	with open(confpath,"w+") as conffile:
@@ -176,23 +176,26 @@ def opt_update(opt, arg):
 def dprint(*args, **kwargs):
 	if debug:
 		print(*args, **kwargs)
-def opt_debug(opt, arg):
+def opt_debug(opt, args):
 	global debug
-	if arg != None:
-		raise CommonCode(4,opt,arg)
+	if args != []:
+		raise CommonCode(4,opt,args)
 	debug=True
 
-def opt_no_update(opt, arg):
+def opt_no_update(opt, args):
 	global update
-	if arg != None:
-		raise CommonCode(4,opt,arg)
+	if args != []:
+		raise CommonCode(4,opt,args)
 	dprint("skipped updating")
 	update=False
 
-def opt_fps(opt, arg):
-	if arg==None:
+def opt_fps(opt, args):
+	if args==[]:
 		raise CommonCode(3,opt,"FPS")
+	elif len(args)>1:
+		raise CommonCode(4,opt,args)
 	else:
+		arg=args[0]
 		try:
 			if int(arg)<0:
 				raise CommonCode(11,opt,arg,">=0")
@@ -211,12 +214,12 @@ def opt_fps(opt, arg):
 #           checking for invalid options and AFTER the high priority options
 # tuple[5]: number specifying the exact priority. options with higher priority are executed before lower ones. position of passed down argument decides what option to execute first when priority is the same
 options=[
-	(["h"], ["help"],      False, opt_help,         5),
-	(["V"], ["version"],   False, opt_version_info, 4),
-	(["d"], ["debug"],     False, opt_debug,        3),
-	(["u"], ["no-update"], False, opt_no_update,    2),
-	(["U"], ["update"],    False, opt_update,       1),
-	(["f"], ["fps"],       True,  opt_fps,			0)]
+	(["h"], ["help"],      0, opt_help,         5),
+	(["V"], ["version"],   0, opt_version_info, 4),
+	(["d"], ["debug"],     0, opt_debug,        3),
+	(["u"], ["no-update"], 0, opt_no_update,    2),
+	(["U"], ["update"],    0, opt_update,       1),
+	(["f"], ["fps"],       1, opt_fps,			0)]
 
 if __name__=="__main__":
 	invalid=""
@@ -236,12 +239,12 @@ if __name__=="__main__":
 			unknown=True
 			for option in options:
 				if (match.group("s") in option[0]) or (match.group("l") in option[1]):
-					value=None
+					values=[]
 					unknown=False
-					if option[2] and i+1<len(argv):
-						value=argv[i+1]
-						isvalue=True
-					optqueue.append([option,arg,value])
+					if option[2] and i+option[2]+1<=len(argv):
+						values=argv[i+1:i+option[2]+1]
+						isvalue=option[2]
+					optqueue.append([option,arg,values])
 					break
 			if unknown:
 				raise CommonCode(5,arg)
@@ -250,7 +253,7 @@ if __name__=="__main__":
 	optqueue.sort(key=lambda opt: opt[0][4], reverse=True)
 	for opt in optqueue:
 		opt[0][3](opt[1], opt[2])
-	dprint("Options:",*[arg[1]+":"+"&".join([str(value) for value in arg[2:]]) for arg in optqueue],sep="\n\t",flush=True)
+	dprint("Options:",*[arg[1]+":"+"&".join([str(value) for value in arg[2:]]) for arg in optqueue],sep="\n  ",flush=True)
 
 pygame.init()
 pygame.freetype.init()
