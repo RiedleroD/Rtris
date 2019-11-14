@@ -34,22 +34,27 @@ def get_git_head():
 	else:
 		return None
 
+defstrg={
+	"left":pygame.K_LEFT,
+	"right":pygame.K_RIGHT,
+	"drop":pygame.K_UP,
+	"idrop":pygame.K_DOWN,
+	"rot":pygame.K_PAGEUP,
+	"rot1":pygame.K_PAGEDOWN,
+	"exit":pygame.K_ESCAPE,
+	"pause":pygame.K_p}
+defaults={
+	"strg":defstrg,
+	"fullscreen":False,
+	"show_fps":True,
+	"max_fps":60,
+	"version":get_git_head(),
+	"update_channel":0,
+	"update":True}
+
 if not os.path.exists(confpath):
-	strg={"left":pygame.K_LEFT,
-		"right":pygame.K_RIGHT,
-		"drop":pygame.K_UP,
-		"idrop":pygame.K_DOWN,
-		"rot":pygame.K_PAGEUP,
-		"rot1":pygame.K_PAGEDOWN,
-		"exit":pygame.K_ESCAPE,
-		"pause":pygame.K_p}
-	conf={"strg":strg,
-		"fullscreen":False,
-		"show_fps":True,
-		"max_fps":60,
-		"version":get_git_head(),
-		"update_channel":0,
-		"update":True}
+	strg=defstrg
+	conf=defaults
 	with open(confpath,"w+") as conffile:
 		json.dump(conf,conffile,ensure_ascii=False)
 else:
@@ -62,17 +67,19 @@ if version!=None:
 	conf["version"]=version
 del version
 
-try:
-	update=conf["update"]
-except KeyError:
-	conf["update"]=True
-	update=conf["update"]
-debug=False
+for setting,default in defaults.items():
+	try:
+		conf[setting]
+	except KeyError:
+		conf[setting]=default
+for setting,default in defstrg.items():
+	try:
+		conf["strg"][setting]
+	except KeyError:
+		conf["strg"][setting]=default
 
-try:
-	conf["max_fps"]
-except KeyError:
-	conf["max_fps"]=60
+update=conf["update"]
+debug=False
 
 COPYRIGHT_YEAR="2019"
 COPYRIGHT_HOLDER="Riedler"
@@ -604,6 +611,8 @@ class Board():
 			if block.alive:
 				return block
 	def spawn(self,typ:int=None):
+		if self.paused:
+			return
 		if typ==None:
 			typ=self.upcoming
 			self.upcoming=random.randrange(0,7)
@@ -616,6 +625,8 @@ class Board():
 		for block in self.blocks:
 			block.stayin()
 	def move_alive(self,x:int,y:int,die_when_stopped:bool=False):
+		if self.paused:
+			return
 		for block in self.blocks:
 			if block.alive:
 				allowed=True
@@ -627,6 +638,8 @@ class Board():
 				elif die_when_stopped:
 					block.die()
 	def rotate_alive(self,clockwise:int):
+		if self.paused:
+			return
 		for block in self.blocks:
 			if block.alive:
 				allowed=True
@@ -666,6 +679,8 @@ class Board():
 		if k:
 			self.checklns()
 	def gravity(self,speed):
+		if self.paused:
+			return
 		dropped=False
 		for block,rot,rect in self.rects2fall:
 			block.rects[rot][rect][1]+=1
@@ -684,6 +699,8 @@ class Board():
 				if block.alive:
 					block.move(0,1)
 	def repopulate(self):
+		if self.paused:
+			return
 		for block in self.blocks:
 			if block.alive:
 				return
@@ -838,11 +855,12 @@ class MainGame():
 		global K_DROP
 		self.running=True
 		while self.running:
-			self.cycle+=self.board.clock.get_time()
-			if (self.cycle//10)%3141<10:
-				self.speed+=1
-				while (self.cycle//10)%3141<10:
-					self.cycle+=1
+			if not self.board.paused:
+				self.cycle+=self.board.clock.get_time()
+				if (self.cycle//10)%3141<10:
+					self.speed+=1
+					while (self.cycle//10)%3141<10:
+						self.cycle+=1
 			for event in pygame.event.get():
 				if event.type==pygame.KEYDOWN:
 					if event.key==strg["exit"]:
