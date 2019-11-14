@@ -741,6 +741,8 @@ class Board():
 			pygame.draw.line(self.surface,(0,0,0),(0,line),(10,line))
 	def pause(self):
 		self.paused=not self.paused
+	def get_cleared(self):
+		return self.tetrisln*4+self.threeln*3+self.twoln*2+self.oneln
 
 def get_rect(x:float=0,y:float=0,width:float=1,height:float=1):
 		return pygame.Rect(math.ceil(x*BLOCK_SIZE),math.ceil(y*BLOCK_SIZE),math.ceil(width*BLOCK_SIZE),math.ceil(height*BLOCK_SIZE))
@@ -793,8 +795,7 @@ class MainGame():
 	running=False
 	speed=0
 	cycle=0
-	def __init__(self,speed:int=0):
-		self.speed=0
+	def __init__(self):
 		self.screen=screen
 		self.buttons={}
 	def draw(self,curtain:list=[],headsup:str="",show_upcoming:bool=True):
@@ -855,13 +856,13 @@ class MainGame():
 	def run(self):
 		global K_DROP
 		self.running=True
+		origspeed=self.speed
 		while self.running:
 			if not self.board.paused:
 				self.cycle+=self.board.clock.get_time()
-				if (self.cycle//10)%3141<10:
+				lines=self.board.get_cleared()
+				if lines//10>self.speed-origspeed:
 					self.speed+=1
-					while (self.cycle//10)%3141<10:
-						self.cycle+=1
 			for event in pygame.event.get():
 				if event.type==pygame.KEYDOWN:
 					if event.key==strg["exit"]:
