@@ -793,7 +793,8 @@ class MainGame():
 	running=False
 	speed=0
 	cycle=0
-	def __init__(self):
+	def __init__(self,speed:int=0):
+		self.speed=0
 		self.screen=screen
 		self.buttons={}
 	def draw(self,curtain:list=[],headsup:str="",show_upcoming:bool=True):
@@ -896,28 +897,51 @@ class MainGame():
 			self.board.clock.tick(conf["max_fps"])
 		self.speed=0
 	def menu(self):
-		self.buttons={}
-		self.buttons["settings"]=Button(x=CENTERx,y=CENTERy,txt="Settings")
-		self.buttons["start"]=Button(x=CENTERx,y=self.buttons["settings"].rect.top-10,txt="Start",posmeth=(0,-1))
-		self.buttons["quit"]=Button(x=CENTERx,y=self.buttons["settings"].rect.bottom+10,txt="Quit",posmeth=(0,1))
 		while True:
+			self.buttons={}
+			self.buttons["settings"]=Button(x=CENTERx,y=CENTERy,txt="Settings")
+			self.buttons["start"]=Button(x=CENTERx,y=self.buttons["settings"].rect.top-10,txt="Start",posmeth=(0,-1))
+			self.buttons["quit"]=Button(x=CENTERx,y=self.buttons["settings"].rect.bottom+10,txt="Quit",posmeth=(0,1))
 			self.draw()
 			if self.checkbuttons():
 				break
 			if self.buttons["start"].pressed:
 				self.buttons["start"].pressed=False
-				self.board=Board()
-				self.run()
+				if self.selectmode():
+					self.board=Board()
+					self.run()
 			elif self.buttons["settings"].pressed:
 				self.buttons["settings"].pressed=False
 				self.settings()
-				self.buttons={}
-				self.buttons["settings"]=Button(x=CENTERx,y=CENTERy,txt="Settings")
-				self.buttons["start"]=Button(x=CENTERx,y=self.buttons["settings"].rect.top-10,txt="Start",posmeth=(0,-1))
-				self.buttons["quit"]=Button(x=CENTERx,y=self.buttons["settings"].rect.bottom+10,txt="Quit",posmeth=(0,1))
 			elif self.buttons["quit"].pressed:
 				self.buttons["quit"].pressed=False
 				break
+	def selectmode(self):
+		self.buttons={
+			"speed":Button(x=LEFT_SIDE,y=CENTERy,txt="Speed: %s"%self.speed,posmeth=(1,0)),
+			"back":Button(x=CENTERx-5,y=BOTTOM_SIDE,txt="Back",posmeth=(-1,-1)),
+			"start":Button(x=CENTERx+5,y=BOTTOM_SIDE,txt="Start",posmeth=(1,-1))}
+		while True:
+			self.draw()
+			if self.checkbuttons() or self.buttons["back"].pressed:
+				return False
+			elif self.buttons["start"].pressed:
+				return True
+			elif self.buttons["speed"].pressed:
+				self.buttons["speed"].txt="["+str(self.speed)+"]"
+				self.buttons["speed"].render()
+				self.draw()
+				for inpot in pygame_input(str(self.speed)):
+					self.buttons["speed"].txt="["+inpot+"]"
+					self.buttons["speed"].render()
+					self.draw()
+				try:
+					self.speed=abs(int(self.buttons["speed"].txt[1:-1]))
+				except ValueError:
+					pass
+				self.buttons["speed"].txt="Speed: "+str(self.speed)
+				self.buttons["speed"].render()
+				self.buttons["speed"].pressed=False
 	def settings(self):
 		self.buttons={
 			"back":Button(x=CENTERx,y=BOTTOM_SIDE,txt="Back",posmeth=(0,-1)),
