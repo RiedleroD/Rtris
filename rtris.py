@@ -558,6 +558,7 @@ class Board():
 	paused=False
 	ended=False
 	has2drop=0
+	spdslope=41/35
 	def __init__(self):
 		self.clock=pygame.time.Clock()
 		self.blocks=[]
@@ -648,7 +649,7 @@ class Board():
 						allowed=False
 				if allowed:
 					block.rotate(clockwise)
-	def cycle(self,speed:int):
+	def cycle(self,speed:float):
 		if self.blinking>0 and not self.paused:
 			self.blinking-=self.clock.get_time()
 			if self.blinking<=0:
@@ -678,7 +679,7 @@ class Board():
 						break
 		if k:
 			self.checklns()
-	def gravity(self,speed):
+	def gravity(self,speed:float):
 		if self.paused:
 			return
 		dropped=False
@@ -689,12 +690,12 @@ class Board():
 			if self.startdrop:
 				self.movecounter=self.counter
 			self.startdrop=False
-			speed+=20
+			speed/=30
 		while self.counter>self.movecounter:
 			dropped=True
 			if not K_DROP:
 				self.startdrop=True
-			self.movecounter+=(1000/(2**(speed/5)))
+			self.movecounter+=speed
 			for block in self.blocks:
 				if block.alive:
 					block.move(0,1)
@@ -794,7 +795,9 @@ class Button():
 class MainGame():
 	running=False
 	speed=0
+	_speed=800
 	cycle=0
+	spdslope=41/35
 	def __init__(self):
 		self.screen=screen
 		self.buttons={}
@@ -857,12 +860,15 @@ class MainGame():
 		global K_DROP
 		self.running=True
 		origspeed=self.speed
+		for x in range(origspeed):
+			self._speed/=self.spdslope
 		while self.running:
 			if not self.board.paused:
 				self.cycle+=self.board.clock.get_time()
 				lines=self.board.get_cleared()
 				if lines//10>self.speed-origspeed:
 					self.speed+=1
+					self._speed/=self.spdslope
 			for event in pygame.event.get():
 				if event.type==pygame.KEYDOWN:
 					if event.key==strg["exit"]:
@@ -891,7 +897,7 @@ class MainGame():
 				elif event.type==pygame.KEYUP:
 					if event.key==strg["drop"]:
 						K_DROP=False
-			self.board.cycle(self.speed)
+			self.board.cycle(self._speed)
 			self.draw()
 			if self.board.ended:
 				self.end()
