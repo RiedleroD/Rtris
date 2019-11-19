@@ -860,9 +860,11 @@ class MainGame():
 		global K_DROP
 		self.running=True
 		origspeed=self.speed
+		self._speed=800
 		for x in range(origspeed):
 			self._speed/=self.spdslope
 		while self.running:
+			print(self.speed)
 			if not self.board.paused:
 				self.cycle+=self.board.clock.get_time()
 				lines=self.board.get_cleared()
