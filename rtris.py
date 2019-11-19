@@ -674,10 +674,11 @@ class Board():
 				else:
 					if die_when_stopped:
 						block.die()
-					bubble=0
-					while any([self.check_pos(rect) in forbidden for rect in block.move_oop(x,y-bubble)[block.rotation]]):
-						bubble+=1
-					block.move(x,1+y-bubble)
+					if x==0 and y>1:
+						bubble=0
+						while any([self.check_pos(rect) in forbidden for rect in block.move_oop(x,y-bubble)[block.rotation]]):
+							bubble+=1
+						block.move(x,1+y-bubble)
 	def rotate_alive(self,clockwise:int):
 		if self.paused:
 			return
@@ -720,6 +721,13 @@ class Board():
 		if k:
 			self.checklns()
 			self.fuse_blocks()
+			self.remove_nonesense()
+	def remove_nonesense(self):	#yes, I know it's spelled nonsense, but this function removes 'None' rects
+		for block in self.blocks:
+			for rotation in range(len(block.rects)):
+				for i in reversed(range(len(block.rects[rotation]))):
+					if block.rects[rotation][i]==None:
+						del block.rects[rotation][i]
 	def gravity(self,speed:float):
 		if self.paused:
 			return
