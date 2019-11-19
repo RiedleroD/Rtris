@@ -484,6 +484,8 @@ class Block():
 			self.color=(127,0,127)
 		else:
 			raise ValueError("Invalid block type: "+str(typ))
+		del self.x
+		del self.y
 	def rectmatrix(self,matrix:list):
 		return [[[matrix[j][i][0]+self.x,matrix[j][i][1]+self.y] for i in range(4)] for j in range(4)]
 	def get_poss(self):
@@ -541,7 +543,7 @@ class Block():
 		if found:
 			return self.move_oop(0,movedown-1)[self.rotation]
 		else:
-			raise ValueError("Couldn't find floor")
+			return self.move_oop(-20,movedown-1)[self.rotation]
 
 class Board():
 	counter=1
@@ -626,18 +628,21 @@ class Board():
 		for block in self.blocks:
 			block.stayin()
 	def move_alive(self,x:int,y:int,die_when_stopped:bool=False):
+		forbidden=(-2,-1)
 		if self.paused:
 			return
 		for block in self.blocks:
 			if block.alive:
-				allowed=True
-				for rect in block.move_oop(x,y)[block.rotation]:
-					if self.check_pos(rect) not in (1,0):
-						allowed=False
+				allowed=all([self.check_pos(rect) not in forbidden for rect in block.move_oop(x,y)[block.rotation]])
 				if allowed:
 					block.move(x,y)
-				elif die_when_stopped:
-					block.die()
+				else:
+					if die_when_stopped:
+						block.die()
+					bubble=0
+					while any([self.check_pos(rect) in forbidden for rect in block.move_oop(x,y-bubble)[block.rotation]]):
+						bubble+=1
+					block.move(x,1+y-bubble)
 	def rotate_alive(self,clockwise:int):
 		if self.paused:
 			return
@@ -696,9 +701,7 @@ class Board():
 			if not K_DROP:
 				self.startdrop=True
 			self.movecounter+=speed
-			for block in self.blocks:
-				if block.alive:
-					block.move(0,1)
+			self.move_alive(0,1)
 	def repopulate(self):
 		if self.paused:
 			return
@@ -706,7 +709,15 @@ class Board():
 			if block.alive:
 				return
 		self.spawn()
-	def check_pos(self,pos:[int,int]):
+	def check_pos(self,pos:[int,int])->int:
+		"""
+Returns an int corresponding to what there is at the specified location.
+	-2	→	below the field
+	None→	anywhere outside the field but below
+	-1	→	dead block
+	0	→	nothing
+	1	→	alive block
+If there are multiple blocks on the same field (which shouldn't happen), then the older one gets returned."""
 		if pos[1]==20:
 			return -2
 		elif pos[0]>9 or pos[1]>19 or pos[1]<0 or pos[0]<0:
@@ -721,9 +732,8 @@ class Board():
 		return 0
 	def cleanup(self):
 		for block in reversed(range(len(self.blocks))):
-			if not self.blocks[block].alive:
-				if not any([rect!=None for rect in self.blocks[block].rects]):
-					del self.blocks[block]
+			if self.blocks[block].rects==None or all([rect==None for rect in self.blocks[block].rects]):
+				del self.blocks[block]
 	def draw(self,curtain:list=[]):
 		self.surface.fill((100,100,100))
 		for block in self.blocks:
@@ -864,7 +874,6 @@ class MainGame():
 		for x in range(origspeed):
 			self._speed/=self.spdslope
 		while self.running:
-			print(self.speed)
 			if not self.board.paused:
 				self.cycle+=self.board.clock.get_time()
 				lines=self.board.get_cleared()
