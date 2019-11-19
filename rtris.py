@@ -674,7 +674,7 @@ class Board():
 				else:
 					if die_when_stopped:
 						block.die()
-					if x==0 and y>1:
+					if x==0 and y>0:
 						bubble=0
 						while any([self.check_pos(rect) in forbidden for rect in block.move_oop(x,y-bubble)[block.rotation]]):
 							bubble+=1
@@ -686,7 +686,7 @@ class Board():
 			if block.alive:
 				allowed=True
 				for rect in block.rotate_oop(clockwise):
-					if self.check_pos(rect) in (-1,-2):
+					if self.check_pos(rect) not in (0,1):
 						allowed=False
 				if allowed:
 					block.rotate(clockwise)
