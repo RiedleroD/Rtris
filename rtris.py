@@ -361,8 +361,7 @@ def pygame_input(txt:str="")->str:
 		yield chars
 		
 class Block():
-	alive=True
-	def __init__(self,typ:int=random.randrange(7),x:int=0,y:int=0):
+	def __init__(self,typ:int=random.randrange(7),x:int=0,y:int=0,rects:list=None,alive:bool=True):
 		"""
 			 01	01
 		0	0##	##				yellow
@@ -433,59 +432,74 @@ class Block():
 		self.x=x
 		self.y=y
 		self.rotation=0
+		self._rotation=0
+		self.alive=alive
 		if typ==0:
-			self.rects=self.rectmatrix([
-			[[0,0],[0,1],[1,0],[1,1]],
-			[[0,0],[0,1],[1,0],[1,1]],
-			[[0,0],[0,1],[1,0],[1,1]],
-			[[0,0],[0,1],[1,0],[1,1]]])
+			if not (type(rects)==list and len(rects)==4):
+				self.rects=self.rectmatrix([
+				[[0,0],[0,1],[1,0],[1,1]],
+				[[0,0],[0,1],[1,0],[1,1]],
+				[[0,0],[0,1],[1,0],[1,1]],
+				[[0,0],[0,1],[1,0],[1,1]]])
 			self.color=(255,255,0)
 		elif typ==1:
-			self.rects=self.rectmatrix([
-			[[0,0],[1,0],[2,0],[0,1]],
-			[[0,0],[0,1],[0,2],[1,2]],
-			[[0,1],[1,1],[2,1],[2,0]],
-			[[0,0],[1,0],[1,1],[1,2]]])
+			if not (type(rects)==list and len(rects)==4):
+				self.rects=self.rectmatrix([
+				[[0,0],[1,0],[2,0],[0,1]],
+				[[0,0],[0,1],[0,2],[1,2]],
+				[[0,1],[1,1],[2,1],[2,0]],
+				[[0,0],[1,0],[1,1],[1,2]]])
 			self.color=(255,127,0)
 		elif typ==2:
-			self.rects=self.rectmatrix([
-			[[0,0],[0,1],[1,1],[2,1]],
-			[[1,0],[1,1],[1,2],[0,2]],
-			[[0,0],[1,0],[2,0],[2,1]],
-			[[1,0],[0,0],[0,1],[0,2]]])
+			if not (type(rects)==list and len(rects)==4):
+				self.rects=self.rectmatrix([
+				[[0,0],[0,1],[1,1],[2,1]],
+				[[1,0],[1,1],[1,2],[0,2]],
+				[[0,0],[1,0],[2,0],[2,1]],
+				[[1,0],[0,0],[0,1],[0,2]]])
 			self.color=(0,0,255)
 		elif typ==3:
-			self.rects=self.rectmatrix([
-			[[0,1],[1,1],[2,1],[3,1]],
-			[[2,0],[2,1],[2,2],[2,3]],
-			[[0,2],[1,2],[2,2],[3,2]],
-			[[1,0],[1,1],[1,2],[1,3]]])
+			if not (type(rects)==list and len(rects)==4):
+				self.rects=self.rectmatrix([
+				[[0,1],[1,1],[2,1],[3,1]],
+				[[2,0],[2,1],[2,2],[2,3]],
+				[[0,2],[1,2],[2,2],[3,2]],
+				[[1,0],[1,1],[1,2],[1,3]]])
 			self.color=(0,255,255)
 		elif typ==4:
-			self.rects=self.rectmatrix([
-			[[0,0],[1,0],[1,1],[2,1]],
-			[[1,0],[1,1],[0,1],[0,2]],
-			[[0,0],[1,0],[1,1],[2,1]],
-			[[1,0],[1,1],[0,1],[0,2]]])
+			if not (type(rects)==list and len(rects)==4):
+				self.rects=self.rectmatrix([
+				[[0,0],[1,0],[1,1],[2,1]],
+				[[1,0],[1,1],[0,1],[0,2]],
+				[[0,0],[1,0],[1,1],[2,1]],
+				[[1,0],[1,1],[0,1],[0,2]]])
 			self.color=(255,0,0)
 		elif typ==5:
-			self.rects=self.rectmatrix([
-			[[2,0],[1,0],[1,1],[0,1]],
-			[[0,0],[0,1],[1,1],[1,2]],
-			[[2,0],[1,0],[1,1],[0,1]],
-			[[0,0],[0,1],[1,1],[1,2]]])
+			if not (type(rects)==list and len(rects)==4):
+				self.rects=self.rectmatrix([
+				[[2,0],[1,0],[1,1],[0,1]],
+				[[0,0],[0,1],[1,1],[1,2]],
+				[[2,0],[1,0],[1,1],[0,1]],
+				[[0,0],[0,1],[1,1],[1,2]]])
 			self.color=(0,255,0)
 		elif typ==6:
-			self.rects=self.rectmatrix([
-			[[1,0],[0,1],[1,1],[2,1]],
-			[[0,1],[1,0],[1,1],[1,2]],
-			[[0,1],[1,1],[2,1],[1,2]],
-			[[1,0],[1,1],[1,2],[2,1]]])
+			if not (type(rects)==list and len(rects)==4):
+				self.rects=self.rectmatrix([
+				[[1,0],[0,1],[1,1],[2,1]],
+				[[0,1],[1,0],[1,1],[1,2]],
+				[[0,1],[1,1],[2,1],[1,2]],
+				[[1,0],[1,1],[1,2],[2,1]]])
 			self.color=(127,0,127)
 		else:
 			raise ValueError("Invalid block type: "+str(typ))
 		del self.x
 		del self.y
+		if type(rects)==list and len(rects)==4:
+			self.rects=rects
+		elif rects!=None:
+			raise ValueError("rects can't be %s, it has to be a list with a length of 4.")
+		if not self.alive:
+			self.die()
 	def rectmatrix(self,matrix:list):
 		return [[[matrix[j][i][0]+self.x,matrix[j][i][1]+self.y] for i in range(4)] for j in range(4)]
 	def get_poss(self):
@@ -528,6 +542,7 @@ class Block():
 	def die(self):
 		self.alive=False
 		self.rects=[self.rects[self.rotation]]
+		self._rotation=self.rotation
 		self.rotation=0
 	def get_shadow(self,board):
 		rects=self.rects[self.rotation]
@@ -544,7 +559,15 @@ class Block():
 			return self.move_oop(0,movedown-1)[self.rotation]
 		else:
 			return self.move_oop(-20,movedown-1)[self.rotation]
-
+	def append_rects(self,rects:list):
+		if not self.alive:
+			self.rects[0]+=rects[0]
+		else:
+			for a,b,c,d in rects:
+				self.rects[0]+=a
+				self.rects[1]+=b
+				self.rects[2]+=c
+				self.rects[3]+=d
 class Board():
 	counter=1
 	dropped=0
@@ -613,6 +636,18 @@ class Board():
 		for block in self.blocks:
 			if block.alive:
 				return block
+	def fuse_blocks(self):
+		newblocks=[Block(i,rects=[[],[],[],[]],alive=False) for i in range(7)]
+		for block in self.blocks:
+			if not block.alive:
+				newblocks[block.typ].append_rects(block.rects)
+			else:
+				newblocks.append(block)
+		wedonotwantthat=([[]],[[],[],[],[]])
+		for i in reversed(range(len(newblocks))):
+			if newblocks[i].rects in wedonotwantthat:
+				del newblocks[i]
+		self.blocks=newblocks
 	def spawn(self,typ:int=None):
 		if self.paused:
 			return
@@ -684,6 +719,7 @@ class Board():
 						break
 		if k:
 			self.checklns()
+			self.fuse_blocks()
 	def gravity(self,speed:float):
 		if self.paused:
 			return
