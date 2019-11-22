@@ -668,7 +668,7 @@ class Board():
 			return
 		for block in self.blocks:
 			if block.alive:
-				allowed=all([self.check_pos(rect) not in forbidden for rect in block.move_oop(x,y)[block.rotation]])
+				allowed=all(self.check_pos(rect) not in forbidden for rect in block.move_oop(x,y)[block.rotation])
 				if allowed:
 					block.move(x,y)
 				else:
@@ -676,20 +676,15 @@ class Board():
 						block.die()
 					if x==0 and y>0:
 						bubble=0
-						while any([self.check_pos(rect) in forbidden for rect in block.move_oop(x,y-bubble)[block.rotation]]):
+						while any(self.check_pos(rect) in forbidden for rect in block.move_oop(x,y-bubble)[block.rotation]):
 							bubble+=1
 						block.move(x,1+y-bubble)
 	def rotate_alive(self,clockwise:int):
 		if self.paused:
 			return
 		for block in self.blocks:
-			if block.alive:
-				allowed=True
-				for rect in block.rotate_oop(clockwise):
-					if self.check_pos(rect) not in (0,1):
-						allowed=False
-				if allowed:
-					block.rotate(clockwise)
+			if block.alive and all(self.check_pos(rect) in (0,1) for rect in block.rotate_oop(clockwise)):
+				block.rotate(clockwise)
 	def cycle(self,speed:float):
 		if self.blinking>0 and not self.paused:
 			self.blinking-=self.clock.get_time()
