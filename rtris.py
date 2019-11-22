@@ -532,8 +532,8 @@ class Block():
 			for i in range(len(self.rects[j])):
 				self.rects[j][i][0]+=x
 				self.rects[j][i][1]+=y
-	def move_oop(self,x:int,y:int):
-		return [[[i[0]+x,i[1]+y] for i in j] for j in self.rects]
+	def move_oop(self,x:int,y:int,rects:list=None):
+		return [[[i[0]+x,i[1]+y] for i in j] for j in (self.rects if rects==None else rects)]
 	def rotate(self,clockwise:int):
 		self.rotation-=clockwise
 		self.rotation%=4
@@ -683,8 +683,18 @@ class Board():
 		if self.paused:
 			return
 		for block in self.blocks:
-			if block.alive and all(self.check_pos(rect) in (0,1) for rect in block.rotate_oop(clockwise)):
-				block.rotate(clockwise)
+			if block.alive:
+				if all(self.check_pos(rect) in (0,1) for rect in block.rotate_oop(clockwise)):
+					block.rotate(clockwise)
+				elif block.alive and all(self.check_pos(rect) in (0,1) for rect in block.move_oop(1,0,[block.rotate_oop(clockwise)])[0]):
+					block.rotate(clockwise)
+					block.move(1,0)
+				elif block.alive and all(self.check_pos(rect) in (0,1) for rect in block.move_oop(0,1,[block.rotate_oop(clockwise)])[0]):
+					block.rotate(clockwise)
+					block.move(0,1)
+				elif block.alive and all(self.check_pos(rect) in (0,1) for rect in block.move_oop(-1,0,[block.rotate_oop(clockwise)])[0]):
+					block.rotate(clockwise)
+					block.move(-1,0)
 	def cycle(self,speed:float):
 		if self.blinking>0 and not self.paused:
 			self.blinking-=self.clock.get_time()
