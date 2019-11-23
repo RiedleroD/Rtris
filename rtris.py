@@ -494,8 +494,11 @@ class Block():
 			raise ValueError("Invalid block type: "+str(typ))
 		del self.x
 		del self.y
-		if type(rects)==list and len(rects)==4:
-			self.rects=rects
+		if type(rects)==list:
+			if len(rects)==4:
+				self.rects=rects
+			elif len(rects)==1 and not self.alive:
+				self.rects=rects
 		elif rects!=None:
 			raise ValueError("rects can't be %s, it has to be a list with a length of 4.")
 		if not self.alive:
@@ -592,9 +595,12 @@ class Board():
 	ended=False
 	has2drop=0
 	spdslope=41/35
-	def __init__(self,mode:int=0):
+	def __init__(self,mode:int=0,bheight:int=5):
 		self.clock=pygame.time.Clock()
-		self.blocks=[]
+		if mode==1:
+			self.blocks=generate_mush(bheight,7)
+		else:
+			self.blocks=[]
 		self.clearing=[]
 		self.rects2fall=[]
 		self.upcoming=sorted(range(7),key=lambda x:random.random())
@@ -815,6 +821,18 @@ If there are multiple blocks on the same field (which shouldn't happen), then th
 
 def get_rect(x:float=0,y:float=0,width:float=1,height:float=1):
 		return pygame.Rect(math.ceil(x*BLOCK_SIZE),math.ceil(y*BLOCK_SIZE),math.ceil(width*BLOCK_SIZE),math.ceil(height*BLOCK_SIZE))
+
+def generate_mush(height:int=4,intensity:int=7):
+	blocks=[[],[],[],[],[],[],[]]
+	assert intensity<10 and intensity>0,"Mush intensity can only be smaller than 10 and bigger than 0"
+	assert height<18 and height>0,"Mush height can only be smaller than 18 and bigger than 0."
+	for y in range(20-height,20):
+		poss=[[x,y] for x in range(10)]
+		for _rect in range(intensity):
+			blocks[random.randrange(7)].append(poss.pop(random.randrange(len(poss))))
+	print(*blocks,sep="\n")
+	return [Block(typ=i,rects=[rects],alive=False) for i,rects in enumerate(blocks) if len(rects)!=0]
+			
 
 class Button():
 	pressed=False
