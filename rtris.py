@@ -992,8 +992,11 @@ class MainGame():
 				self.buttons["quit"].pressed=False
 				break
 	def selectmode(self):
+		gms=["A","B"]	#Game modes
+		self.mode=0
 		self.buttons={
-			"speed":Button(x=LEFT_SIDE,y=CENTERy,txt="Speed: %s"%self.speed,posmeth=(1,0)),
+			"speed":Button(x=LEFT_SIDE,y=CENTERy-5,txt="Speed: %s"%self.speed,posmeth=(1,-1)),
+			"mode":Button(x=LEFT_SIDE,y=CENTERy+5,txt="Mode: %s"%(gms[self.mode]),posmeth=(1,1)),
 			"back":Button(x=CENTERx-5,y=BOTTOM_SIDE,txt="Back",posmeth=(-1,-1)),
 			"start":Button(x=CENTERx+5,y=BOTTOM_SIDE,txt="Start",posmeth=(1,-1))}
 		while True:
@@ -1017,6 +1020,12 @@ class MainGame():
 				self.buttons["speed"].txt="Speed: "+str(self.speed)
 				self.buttons["speed"].render()
 				self.buttons["speed"].pressed=False
+			elif self.buttons["mode"].pressed:
+				self.buttons["mode"].pressed=False
+				self.mode+=1
+				self.mode%=2
+				self.buttons["mode"].txt="Mode: %s"%(gms[self.mode])
+				self.buttons["mode"].render()
 	def settings(self):
 		self.buttons={
 			"back":Button(x=CENTERx,y=BOTTOM_SIDE,txt="Back",posmeth=(0,-1)),
