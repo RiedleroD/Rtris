@@ -884,6 +884,8 @@ class Button():
 		return self.rect.collidepoint(pos)
 	def render(self)	->	pygame.Surface:
 		text=self.font.render(self.txt,self.color)[0]
+		if text.get_width()>self.surface.get_width():
+			text=pygame.transform.smoothscale(text,(self.surface.get_width(),text.get_height()))
 		self.surface.fill(self.bgcolor)
 		self.surface.blit(text,(self.surface.get_width()//2-text.get_width()//2,self.surface.get_height()//2-text.get_height()//2))
 		return self.surface
