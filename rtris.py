@@ -826,10 +826,11 @@ def generate_mush(height:int=4,intensity:int=7):
 	blocks=[[],[],[],[],[],[],[]]
 	assert intensity<10 and intensity>0,"Mush intensity can only be smaller than 10 and bigger than 0"
 	assert height<18 and height>0,"Mush height can only be smaller than 18 and bigger than 0."
-	for y in range(20-height,20):
-		poss=[[x,y] for x in range(10)]
-		for _rect in range(intensity):
-			blocks[random.randrange(7)].append(poss.pop(random.randrange(len(poss))))
+	poss=[[x,y] for x in range(10) for y in range(20-height,20)]
+	for _pos in range(0,-10+height*10,10):
+		del poss[_pos+random.randrange(0,10)]
+	for _rect in range(intensity*height):
+		blocks[random.randrange(7)].append(poss.pop(random.randrange(len(poss))))
 	return [Block(typ=i,rects=[rects],alive=False) for i,rects in enumerate(blocks) if len(rects)!=0]
 			
 
