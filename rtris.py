@@ -562,7 +562,7 @@ class Block():
 	def append_rects(self,rects:list):
 		try:
 			rects[0][0][0]
-		except TypeError():
+		except (TypeError,IndexError):
 			if not self.alive:
 				self.rects[0]+=rects
 			else:
@@ -648,7 +648,7 @@ class Board():
 		newblocks=[Block(i,rects=[[],[],[],[]],alive=False) for i in range(7)]
 		for block in self.blocks:
 			if not block.alive:
-				newblocks[block.typ].append_rects(block.rects)
+				newblocks[block.typ].append_rects([rect for rect in block.rects[0] if rect!=None])
 			else:
 				newblocks.append(block)
 		wedonotwantthat=([[]],[[],[],[],[]])
