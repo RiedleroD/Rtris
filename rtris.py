@@ -596,10 +596,10 @@ class Board():
 	ended=False
 	has2drop=0
 	spdslope=41/35
-	def __init__(self,mode:int=0,bheight:int=5,blines:int=25):
+	def __init__(self,mode:int=0,bheight:int=5,blines:int=25,bint:int=7):
 		self.clock=pygame.time.Clock()
 		if mode==1:
-			self.blocks=generate_mush(bheight,7)
+			self.blocks=generate_mush(bheight,bint)
 		else:
 			self.blocks=[]
 		self.mode=mode
@@ -897,8 +897,9 @@ class MainGame():
 	cycle=0
 	spdslope=41/35
 	mode=0
-	bheight=5
-	blines=25
+	bheight=5	#b-mode height
+	blines=25	#b-mode objective
+	bint=7		#b-mode intensity
 	def __init__(self):
 		self.screen=screen
 		self.buttons={}
@@ -1021,7 +1022,7 @@ class MainGame():
 			if self.buttons["start"].pressed:
 				self.buttons["start"].pressed=False
 				if self.selectmode():
-					self.board=Board(self.mode,self.bheight,self.blines)
+					self.board=Board(self.mode,self.bheight,self.blines,self.bint)
 					self.run()
 			elif self.buttons["settings"].pressed:
 				self.buttons["settings"].pressed=False
@@ -1038,7 +1039,8 @@ class MainGame():
 			"start":Button(x=CENTERx+5,y=BOTTOM_SIDE,txt="Start",posmeth=(1,-1))}
 		if self.mode==1:
 			self.buttons["height"]=Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height: %s"%self.bheight,posmeth=(1,1))
-			self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Lines: %s"%self.blines,posmeth=(1,1),font=scorefont25)
+			self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Objective: %s"%self.blines,posmeth=(1,1),font=scorefont25)
+			self.buttons["int"]=Button(x=self.buttons["blines"].rect.right+10,y=CENTERy+5,txt="Intensity: %s"%self.bheight,posmeth=(1,1),font=scorefont25)
 		while True:
 			self.draw()
 			if self.checkbuttons() or self.buttons["back"].pressed:
@@ -1070,6 +1072,7 @@ class MainGame():
 				else:
 					self.buttons["height"]=Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height: %s"%self.bheight,posmeth=(1,1))
 					self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Objective: %s"%self.blines,posmeth=(1,1),font=scorefont25)
+					self.buttons["bint"]=Button(x=self.buttons["blines"].rect.right+10,y=CENTERy+5,txt="Intensity: %s"%self.bint,posmeth=(1,1),font=scorefont25)
 				self.buttons["mode"].txt="Mode: %s"%(gms[self.mode])
 				self.buttons["mode"].render()
 			elif self.mode==1 and self.buttons["height"].pressed:
@@ -1093,6 +1096,12 @@ class MainGame():
 					pass
 				self.buttons["blines"].txt="Objective: %s"%self.blines
 				self.buttons["blines"].render()
+			elif self.mode==1 and self.buttons["bint"].pressed:
+				self.buttons["bint"].pressed=False
+				self.bint%=9
+				self.bint+=1
+				self.buttons["bint"].txt="Intensity: %s"%self.bint
+				self.buttons["bint"].render()
 	def settings(self):
 		self.buttons={
 			"back":Button(x=CENTERx,y=BOTTOM_SIDE,txt="Back",posmeth=(0,-1)),
