@@ -592,12 +592,12 @@ class Board():
 	ended=False
 	has2drop=0
 	spdslope=41/35
-	def __init__(self):
+	def __init__(self,mode:int=0):
 		self.clock=pygame.time.Clock()
 		self.blocks=[]
 		self.clearing=[]
 		self.rects2fall=[]
-		self.upcoming=random.randrange(0,7)
+		self.upcoming=sorted(range(7),key=lambda x:random.random())
 		self.surface=pygame.Surface((10,20),pygame.HWSURFACE)
 	def checklns(self):
 		lns_count=0
@@ -660,8 +660,9 @@ class Board():
 		if self.paused:
 			return
 		if typ==None:
-			typ=self.upcoming
-			self.upcoming=random.randrange(0,7)
+			typ=self.upcoming.pop(0)
+			if len(self.upcoming)==0:
+				self.upcoming=sorted(range(7),key=lambda x:random.random())
 		block=Block(typ=typ,x=4,y=0)
 		for rect in block.rects[block.rotation]:
 			if self.check_pos(rect)==-1:
@@ -865,6 +866,7 @@ class MainGame():
 	_speed=800
 	cycle=0
 	spdslope=41/35
+	mode=0
 	def __init__(self):
 		self.screen=screen
 		self.buttons={}
@@ -886,7 +888,7 @@ class MainGame():
 				screen.blit(scorefont.render("Singles: "+str(self.board.oneln),(255,255,255))[0],(11*BLOCK_SIZE,9*BLOCK_SIZE))
 				#pygame.draw.rect(screen,(125,125,125),get_rect(11.5,1.5,2.5,2.5))
 				if show_upcoming:
-					upcoming=Block(typ=self.board.upcoming,x=0,y=0)
+					upcoming=Block(typ=self.board.upcoming[0],x=0,y=0)
 					for x,y in upcoming.rects[0]:
 						if upcoming.typ==0:
 							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.5+x,0.5+y,1,1))
@@ -983,7 +985,7 @@ class MainGame():
 			if self.buttons["start"].pressed:
 				self.buttons["start"].pressed=False
 				if self.selectmode():
-					self.board=Board()
+					self.board=Board(self.mode)
 					self.run()
 			elif self.buttons["settings"].pressed:
 				self.buttons["settings"].pressed=False
@@ -993,7 +995,6 @@ class MainGame():
 				break
 	def selectmode(self):
 		gms=["A","B"]	#Game modes
-		self.mode=0
 		self.buttons={
 			"speed":Button(x=LEFT_SIDE,y=CENTERy-5,txt="Speed: %s"%self.speed,posmeth=(1,-1)),
 			"mode":Button(x=LEFT_SIDE,y=CENTERy+5,txt="Mode: %s"%(gms[self.mode]),posmeth=(1,1)),
