@@ -1051,8 +1051,8 @@ class MainGame():
 				self.buttons["mode"].render()
 			elif self.mode==1 and self.buttons["height"].pressed:
 				self.buttons["height"].pressed=False
+				self.bheight%=18
 				self.bheight+=1
-				self.bheight%=16
 				self.buttons["height"].txt="Height: %s"%self.bheight
 				self.buttons["height"].render()
 	def settings(self):
