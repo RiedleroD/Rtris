@@ -560,14 +560,22 @@ class Block():
 		else:
 			return self.move_oop(-20,movedown-1)[self.rotation]
 	def append_rects(self,rects:list):
-		if not self.alive:
-			self.rects[0]+=rects[0]
+		try:
+			rects[0][0][0]
+		except TypeError():
+			if not self.alive:
+				self.rects[0]+=rects
+			else:
+				self.rects[self.rotation]+=rects
 		else:
-			for a,b,c,d in rects:
-				self.rects[0]+=a
-				self.rects[1]+=b
-				self.rects[2]+=c
-				self.rects[3]+=d
+			if not self.alive:
+				self.rects[0]+=rects[0]
+			else:
+				for a,b,c,d in rects:
+					self.rects[0]+=a
+					self.rects[1]+=b
+					self.rects[2]+=c
+					self.rects[3]+=d
 class Board():
 	counter=1
 	dropped=0
