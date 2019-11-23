@@ -344,6 +344,7 @@ del screen_mode
 pygame.display.set_caption("RTris")
 
 scorefont=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",30)
+scorefont25=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",25)
 
 def pygame_input(txt:str="")->str:
 	char=""
@@ -1035,7 +1036,7 @@ class MainGame():
 			"start":Button(x=CENTERx+5,y=BOTTOM_SIDE,txt="Start",posmeth=(1,-1))}
 		if self.mode==1:
 			self.buttons["height"]=Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height: %s"%self.bheight,posmeth=(1,1))
-			self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Lines: %s"%self.blines,posmeth=(1,1))
+			self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Lines: %s"%self.blines,posmeth=(1,1),font=scorefont25)
 		while True:
 			self.draw()
 			if self.checkbuttons() or self.buttons["back"].pressed:
@@ -1066,7 +1067,7 @@ class MainGame():
 					del self.buttons["blines"]
 				else:
 					self.buttons["height"]=Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height: %s"%self.bheight,posmeth=(1,1))
-					self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Objective: %s"%self.blines,posmeth=(1,1))
+					self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Objective: %s"%self.blines,posmeth=(1,1),font=scorefont25)
 				self.buttons["mode"].txt="Mode: %s"%(gms[self.mode])
 				self.buttons["mode"].render()
 			elif self.mode==1 and self.buttons["height"].pressed:
