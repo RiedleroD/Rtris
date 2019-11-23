@@ -595,18 +595,21 @@ class Board():
 	ended=False
 	has2drop=0
 	spdslope=41/35
-	def __init__(self,mode:int=0,bheight:int=5):
+	def __init__(self,mode:int=0,bheight:int=5,blines:int=25):
 		self.clock=pygame.time.Clock()
 		if mode==1:
 			self.blocks=generate_mush(bheight,7)
 		else:
 			self.blocks=[]
+		self.mode=mode
+		self.blines=blines	#actually b-lines, but that'd be invalid
 		self.clearing=[]
 		self.rects2fall=[]
 		self.upcoming=sorted(range(7),key=lambda x:random.random())
 		self.surface=pygame.Surface((10,20),pygame.HWSURFACE)
 	def checklns(self):
 		lns_count=0
+		deleted=False
 		for line in range(20):
 			found=True
 			for px in range(10):
@@ -615,6 +618,7 @@ class Board():
 			if found:
 				self.delline(line)
 				lns_count+=1
+				deleted=True
 		if lns_count==1:
 			self.oneln+=1
 		elif lns_count==2:
@@ -627,6 +631,11 @@ class Board():
 			pass
 		else:
 			raise ValueError("lns_count is "+str(lns_count)+", but it can only be 0-4")
+		if deleted and self.mode==1:
+			self.checkbmode()
+	def checkbmode(self):
+		if self.get_cleared()>=self.blines:
+			self.ended=True
 	def calcscore(self):
 		return self.tetrisln*800+self.threeln*500+self.twoln*300+self.oneln*100+self.dropped+self.harddrop
 	def delline(self,line:int):
@@ -886,6 +895,7 @@ class MainGame():
 	spdslope=41/35
 	mode=0
 	bheight=5
+	blines=25
 	def __init__(self):
 		self.screen=screen
 		self.buttons={}
@@ -936,9 +946,9 @@ class MainGame():
 			for name,button in self.buttons.items():
 				self.screen.blit(button.surface,button.rect)
 		pygame.display.flip()
-	def end(self):
+	def end(self,state:int=0):
 		for line in reversed(range(20)):
-			self.draw(curtain=[l for l in range(line,20)],headsup="Game Over",show_upcoming=False)
+			self.draw(curtain=[l for l in range(line,20)],headsup=("Game Over","You Win")[state],show_upcoming=False)
 			self.board.clock.tick(30)
 		while self.running:
 			event=pygame.event.wait()
@@ -989,7 +999,11 @@ class MainGame():
 			self.board.cycle(self._speed)
 			self.draw()
 			if self.board.ended:
-				self.end()
+				if self.mode==1 and self.board.get_cleared()>=self.blines:
+					state=1
+				else:
+					state=0
+				self.end(state)
 			self.board.clock.tick(conf["max_fps"])
 		self.speed=0
 	def menu(self):
@@ -1004,7 +1018,7 @@ class MainGame():
 			if self.buttons["start"].pressed:
 				self.buttons["start"].pressed=False
 				if self.selectmode():
-					self.board=Board(self.mode,self.bheight)
+					self.board=Board(self.mode,self.bheight,self.blines)
 					self.run()
 			elif self.buttons["settings"].pressed:
 				self.buttons["settings"].pressed=False
