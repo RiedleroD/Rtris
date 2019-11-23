@@ -1033,11 +1033,10 @@ class MainGame():
 			"mode":Button(x=LEFT_SIDE,y=CENTERy+5,txt="Mode: %s"%(gms[self.mode]),posmeth=(1,1)),
 			"back":Button(x=CENTERx-5,y=BOTTOM_SIDE,txt="Back",posmeth=(-1,-1)),
 			"start":Button(x=CENTERx+5,y=BOTTOM_SIDE,txt="Start",posmeth=(1,-1))}
+		if self.mode==1:
+			self.buttons["height"]=Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height: %s"%self.bheight,posmeth=(1,1))
+			self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Lines: %s"%self.blines,posmeth=(1,1))
 		while True:
-			if self.mode==0 and "height" in self.buttons.keys():
-				del self.buttons["height"]
-			elif self.mode==1 and "height" not in self.buttons.keys():
-				self.buttons["height"]=Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height: %s"%self.bheight,posmeth=(1,1))
 			self.draw()
 			if self.checkbuttons() or self.buttons["back"].pressed:
 				return False
@@ -1062,6 +1061,12 @@ class MainGame():
 				self.buttons["mode"].pressed=False
 				self.mode+=1
 				self.mode%=2
+				if self.mode==0:
+					del self.buttons["height"]
+					del self.buttons["blines"]
+				else:
+					self.buttons["height"]=Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height: %s"%self.bheight,posmeth=(1,1))
+					self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Objective: %s"%self.blines,posmeth=(1,1))
 				self.buttons["mode"].txt="Mode: %s"%(gms[self.mode])
 				self.buttons["mode"].render()
 			elif self.mode==1 and self.buttons["height"].pressed:
@@ -1070,6 +1075,21 @@ class MainGame():
 				self.bheight+=1
 				self.buttons["height"].txt="Height: %s"%self.bheight
 				self.buttons["height"].render()
+			elif self.mode==1 and self.buttons["blines"].pressed:
+				self.buttons["blines"].pressed=False
+				self.buttons["blines"].txt="[%s]"%self.blines
+				self.buttons["blines"].render()
+				self.draw()
+				for inpot in pygame_input(str(self.blines)):
+					self.buttons["blines"].txt="[%s]"%inpot
+					self.buttons["blines"].render()
+					self.draw()
+				try:
+					self.blines=(lambda blines:blines if blines>0 else self.blines)(abs(int(self.buttons["blines"].txt[1:-1])))
+				except ValueError:
+					pass
+				self.buttons["blines"].txt="Objective: %s"%self.blines
+				self.buttons["blines"].render()
 	def settings(self):
 		self.buttons={
 			"back":Button(x=CENTERx,y=BOTTOM_SIDE,txt="Back",posmeth=(0,-1)),
