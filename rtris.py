@@ -1004,7 +1004,7 @@ class MainGame():
 			if self.buttons["start"].pressed:
 				self.buttons["start"].pressed=False
 				if self.selectmode():
-					self.board=Board(self.mode)
+					self.board=Board(self.mode,self.bheight)
 					self.run()
 			elif self.buttons["settings"].pressed:
 				self.buttons["settings"].pressed=False
