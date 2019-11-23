@@ -867,6 +867,7 @@ class MainGame():
 	cycle=0
 	spdslope=41/35
 	mode=0
+	bheight=5
 	def __init__(self):
 		self.screen=screen
 		self.buttons={}
@@ -1001,6 +1002,10 @@ class MainGame():
 			"back":Button(x=CENTERx-5,y=BOTTOM_SIDE,txt="Back",posmeth=(-1,-1)),
 			"start":Button(x=CENTERx+5,y=BOTTOM_SIDE,txt="Start",posmeth=(1,-1))}
 		while True:
+			if self.mode==0 and "height" in self.buttons.keys():
+				del self.buttons["height"]
+			elif self.mode==1 and "height" not in self.buttons.keys():
+				self.buttons["height"]=Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height: %s"%self.bheight,posmeth=(1,1))
 			self.draw()
 			if self.checkbuttons() or self.buttons["back"].pressed:
 				return False
@@ -1027,6 +1032,12 @@ class MainGame():
 				self.mode%=2
 				self.buttons["mode"].txt="Mode: %s"%(gms[self.mode])
 				self.buttons["mode"].render()
+			elif self.mode==1 and self.buttons["height"].pressed:
+				self.buttons["height"].pressed=False
+				self.bheight+=1
+				self.bheight%=16
+				self.buttons["height"].txt="Height: %s"%self.bheight
+				self.buttons["height"].render()
 	def settings(self):
 		self.buttons={
 			"back":Button(x=CENTERx,y=BOTTOM_SIDE,txt="Back",posmeth=(0,-1)),
