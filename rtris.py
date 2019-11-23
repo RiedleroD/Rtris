@@ -830,7 +830,6 @@ def generate_mush(height:int=4,intensity:int=7):
 		poss=[[x,y] for x in range(10)]
 		for _rect in range(intensity):
 			blocks[random.randrange(7)].append(poss.pop(random.randrange(len(poss))))
-	print(*blocks,sep="\n")
 	return [Block(typ=i,rects=[rects],alive=False) for i,rects in enumerate(blocks) if len(rects)!=0]
 			
 
