@@ -11,6 +11,7 @@ from urllib import request as req
 from urllib.error import URLError
 from re import fullmatch
 from commoncodes import CommonCode,settb
+import zipfile
 settb(False)
 
 K_DROP=False
@@ -133,11 +134,18 @@ class Updater():
 	def update(self)->bool:
 		"""Returns True if updated, False if already newest version."""
 		try:
+			__file__
+		except NameError:
+			print("Updating compiled scripts is not supported yet!")
+		try:
 			tag=self.get_latest_tag()
 			if self.current!=tag:
 				data=self.get_commit(tag)
-				with open(__file__,"wb") as f:
+				fpath=os.path.join(curpath,".update_rtris.zip")
+				with open(fpath,"wb+") as f:
 					f.write(data)
+				with zipfile.ZipFile(fpath,"r") as zipf:
+					zipf.extractall(curpath)
 				print("Updated from "+str(conf["version"])+" to "+tag+".")
 				conf["version"]=tag
 				return True
@@ -149,9 +157,8 @@ class Updater():
 			dprint("Reason:",e,end="")
 			print()
 			return False
-	def get_commit(self,tag:str)->bytes:
-		data=req.urlopen("https://raw.githubusercontent.com/RiedleroD/Rtris/%s/rtris.py"%tag).read()
-		return data
+	def get_zip(self,tag:str)->bytes:
+		return req.urlopen("https://github.com/RiedleroD/Rtris/archive/%s.zip"%tag).read()
 	def get_latest_tag(self)->str:
 		if self.meth==2:
 			info=json.load(req.urlopen("https://api.github.com/repos/RiedleroD/Rtris/commits/master"))
