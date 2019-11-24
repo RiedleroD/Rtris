@@ -15,18 +15,21 @@ settb(False)
 
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
+try:
+	curpath=os.path.abspath(os.path.dirname(__file__))
+except NameError:
+	import inspect
+	curpath=os.path.abspath(os.path.dirname(inspect.getframeinfo(inspect.currentframe()).filename))
+datapath=os.path.join(curpath,"gamedata")
+spritepath=os.path.join(datapath,"sprites")
 
 def get_git_head():
-	try:
-		curdir=os.path.abspath(os.path.dirname(__file__))
-	except NameError:	#For when the script is compiled - the constant __file__ doesn't exist then
-		return None
-	headfile=os.path.join(curdir,".git/HEAD")
+	headfile=os.path.join(curpath,".git/HEAD")
 	if os.path.exists(headfile):
 		with open(headfile,"r") as f:
 			head=f.read()
 		if head.startswith("ref:"):
-			with open(os.path.abspath(os.path.join(curdir,".git/",head.split()[-1])),"r") as f:
+			with open(os.path.abspath(os.path.join(curpath,".git/",head.split()[-1])),"r") as f:
 				tag=f.read()
 		else:
 			tag=head
@@ -50,7 +53,8 @@ defaults={
 	"max_fps":60,
 	"version":get_git_head(),
 	"update_channel":0,
-	"update":True}
+	"update":True,
+	"sprites":True}
 
 if not os.path.exists(confpath):
 	strg=defstrg
@@ -345,6 +349,19 @@ pygame.display.set_caption("RTris")
 
 scorefont=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",30)
 scorefont25=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",25)
+SPRITES={"blocks":{}}
+sprtpaths=[]
+for i in range(7):
+	img=os.path.join(spritepath,"block_%s.png"%i)
+	try:
+		SPRITES["blocks"][i]=pygame.image.load(img)
+	except pygame.error:
+		dprint("Couldn't load image: %s"%img)
+	else:
+		sprtpaths.append(img)
+if len(SPRITES["blocks"])>0:
+	dprint("Found Sprites:",*sprtpaths,sep="\n  ")
+del sprtpaths
 
 def pygame_input(txt:str="")->str:
 	char=""
@@ -541,6 +558,7 @@ class Block():
 	def rotate(self,clockwise:int):
 		self.rotation-=clockwise
 		self.rotation%=4
+		self._rotation=self.rotation
 	def rotate_oop(self,clockwise:int):
 		return self.rects[(self.rotation-clockwise)%4]
 	def die(self):
@@ -607,7 +625,10 @@ class Board():
 		self.clearing=[]
 		self.rects2fall=[]
 		self.upcoming=sorted(range(7),key=lambda x:random.random())
-		self.surface=pygame.Surface((10,20),pygame.HWSURFACE)
+		if conf["sprites"]:
+			self.surface=pygame.Surface((60,120),pygame.HWSURFACE)
+		else:
+			self.surface=pygame.Surface((10,20),pygame.HWSURFACE)
 	def checklns(self):
 		lns_count=0
 		deleted=False
@@ -810,20 +831,38 @@ If there are multiple blocks on the same field (which shouldn't happen), then th
 				del self.blocks[block]
 	def draw(self,curtain:list=[]):
 		self.surface.fill((100,100,100))
-		for block in self.blocks:
-			if block.alive:
-				for pos in block.get_shadow(self):
-					self.surface.set_at(pos,(125,125,125))
-			for pos in block.rects[block.rotation]:
-				if pos!=None:
-					self.surface.set_at(pos,block.color)
-		for ln in self.clearing:
-			if self.blinking>100:
-				pygame.draw.line(self.surface,(255,255,255),(0,ln),(10,ln))
-			elif self.blinking>50:
-				pygame.draw.line(self.surface,(200,200,200),(0,ln),(10,ln))
-		for line in curtain:
-			pygame.draw.line(self.surface,(0,0,0),(0,line),(10,line))
+		if conf["sprites"]:
+			for block in self.blocks:
+				if block.alive:
+					for x,y in block.get_shadow(self):
+						pygame.draw.rect(self.surface,(125,125,125),(x*6,y*6,6,6))
+				for pos in block.rects[block.rotation]:
+					if pos!=None:
+						x,y=pos
+						pygame.draw.rect(self.surface,block.color,(x*6,y*6,6,6))
+						self.surface.blit(SPRITES["blocks"][block.typ],(x*6,y*6))
+			for ln in self.clearing:
+				if self.blinking>100:
+					pygame.draw.rect(self.surface,(255,255,255),(0,ln*6,60,6))
+				elif self.blinking>50:
+					pygame.draw.rect(self.surface,(200,200,200),(0,ln*6,60,6))
+			for ln in curtain:
+				pygame.draw.rect(self.surface,(0,0,0),(0,ln*6,60,6))
+		else:
+			for block in self.blocks:
+				if block.alive:
+					for pos in block.get_shadow(self):
+						self.surface.set_at(pos,(125,125,125))
+				for pos in block.rects[block.rotation]:
+					if pos!=None:
+						self.surface.set_at(pos,block.color)
+			for ln in self.clearing:
+				if self.blinking>100:
+					pygame.draw.line(self.surface,(255,255,255),(0,ln),(10,ln))
+				elif self.blinking>50:
+					pygame.draw.line(self.surface,(200,200,200),(0,ln),(10,ln))
+			for ln in curtain:
+				pygame.draw.line(self.surface,(0,0,0),(0,ln),(10,ln))
 	def pause(self):
 		self.paused=not self.paused
 	def get_cleared(self):
@@ -1135,8 +1174,14 @@ class MainGame():
 		self.buttons["update"]=Button(x=RIGHT_SIDE,y=self.buttons["max_fps"].rect.bottom+10,txtcolor=updtcolr,txt="Update",posmeth=(-1,1))
 		uchans=["Stable","Devel","Canary"]
 		self.buttons["uchannel"]=Button(x=RIGHT_SIDE,y=self.buttons["update"].rect.bottom+10,txt=uchans[conf["update_channel"]],posmeth=(-1,1))
+		if conf["sprites"]:
+			sprtcolr=(0,255,0)
+		else:
+			sprtcolr=(255,0,0)
+		self.buttons["sprites"]=Button(x=RIGHT_SIDE,y=self.buttons["uchannel"].rect.bottom+10,txtcolor=sprtcolr,txt="Sprites",posmeth=(-1,1))
 		del updtcolr
 		del fulscrntxt
+		del sprtcolr
 		while True:
 			self.draw()
 			if self.checkbuttons() or self.buttons["back"].pressed:
@@ -1266,6 +1311,14 @@ class MainGame():
 				conf["update_channel"]=(conf["update_channel"]+1)%3
 				self.buttons["uchannel"].txt=uchans[conf["update_channel"]]
 				self.buttons["uchannel"].render()
+			elif self.buttons["sprites"].pressed:
+				self.buttons["sprites"].pressed=False
+				conf["sprites"]=not conf["sprites"]
+				if conf["sprites"]:
+					self.buttons["sprites"].color=(0,255,0)
+				else:
+					self.buttons["sprites"].color=(255,0,0)
+				self.buttons["sprites"].render()
 	def wait4buttonpress(self):
 		while True:
 			event=pygame.event.wait()
@@ -1285,7 +1338,7 @@ class MainGame():
 
 if __name__=="__main__":
 	try:
-		dprint("Configurations:\n  strg:\n    left:%s\n    right:%s\n    drop:%s\n    idrop:%s\n    rot:%s\n    rot1:%s\n    exit:%s\n    pause:%s\n  fullscreen:%s\n  show_fps:%s\n  max_fps:%s\n  version:%s\n  update_channel:%s\n  update:%s"%(conf["strg"]["left"],conf["strg"]["right"],conf["strg"]["drop"],conf["strg"]["idrop"],conf["strg"]["rot"],conf["strg"]["rot1"],conf["strg"]["exit"],conf["strg"]["pause"],conf["fullscreen"],conf["show_fps"],	conf["max_fps"],conf["version"],conf["update_channel"],conf["update"]))
+		dprint("Configurations:\n  strg:\n    left:%s\n    right:%s\n    drop:%s\n    idrop:%s\n    rot:%s\n    rot1:%s\n    exit:%s\n    pause:%s\n  fullscreen:%s\n  show_fps:%s\n  max_fps:%s\n  version:%s\n  update_channel:%s\n  update:%s\n  sprites:%s"%(conf["strg"]["left"],conf["strg"]["right"],conf["strg"]["drop"],conf["strg"]["idrop"],conf["strg"]["rot"],conf["strg"]["rot1"],conf["strg"]["exit"],conf["strg"]["pause"],conf["fullscreen"],conf["show_fps"],	conf["max_fps"],conf["version"],conf["update_channel"],conf["update"],conf["sprites"]))
 		try:
 			if os.path.exists(os.path.join(os.path.dirname(__file__),".git/")):
 				dprint("Skipped updating because of detected git repository")
