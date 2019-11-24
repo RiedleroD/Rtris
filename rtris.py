@@ -137,27 +137,28 @@ class Updater():
 			__file__
 		except NameError:
 			print("Updating compiled scripts is not supported yet!")
-		try:
-			tag=self.get_latest_tag()
-			if self.current!=tag:
-				data=self.get_commit(tag)
-				fpath=os.path.join(curpath,".update_rtris.zip")
-				with open(fpath,"wb+") as f:
-					f.write(data)
-				with zipfile.ZipFile(fpath,"r") as zipf:
-					zipf.extractall(curpath)
-				os.remove(fpath)
-				print("Updated from "+str(conf["version"])+" to "+tag+".")
-				conf["version"]=tag
-				return True
-			else:
-				print("Already newest",("Release.","Prerelease.","commit.")[conf["update_channel"]])
+		else:
+			try:
+				tag=self.get_latest_tag()
+				if self.current!=tag:
+					data=self.get_commit(tag)
+					fpath=os.path.join(curpath,".update_rtris.zip")
+					with open(fpath,"wb+") as f:
+						f.write(data)
+					with zipfile.ZipFile(fpath,"r") as zipf:
+						zipf.extractall(curpath)
+					os.remove(fpath)
+					print("Updated from "+str(conf["version"])+" to "+tag+".")
+					conf["version"]=tag
+					return True
+				else:
+					print("Already newest",("Release.","Prerelease.","commit.")[conf["update_channel"]])
+					return False
+			except URLError as e:
+				print("Couldn't update.",end=" ")
+				dprint("Reason:",e,end="")
+				print()
 				return False
-		except URLError as e:
-			print("Couldn't update.",end=" ")
-			dprint("Reason:",e,end="")
-			print()
-			return False
 	def get_zip(self,tag:str)->bytes:
 		return req.urlopen("https://github.com/RiedleroD/Rtris/archive/%s.zip"%tag).read()
 	def get_latest_tag(self)->str:
