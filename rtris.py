@@ -146,6 +146,7 @@ class Updater():
 					f.write(data)
 				with zipfile.ZipFile(fpath,"r") as zipf:
 					zipf.extractall(curpath)
+				os.remove(fpath)
 				print("Updated from "+str(conf["version"])+" to "+tag+".")
 				conf["version"]=tag
 				return True
