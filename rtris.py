@@ -1092,7 +1092,7 @@ class MainGame():
 		if self.mode==1:
 			self.buttons["height"]=Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height: %s"%self.bheight,posmeth=(1,1))
 			self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Objective: %s"%self.blines,posmeth=(1,1),font=scorefont25)
-			self.buttons["int"]=Button(x=self.buttons["blines"].rect.right+10,y=CENTERy+5,txt="Intensity: %s"%self.bheight,posmeth=(1,1),font=scorefont25)
+			self.buttons["bint"]=Button(x=self.buttons["blines"].rect.right+10,y=CENTERy+5,txt="Intensity: %s"%self.bheight,posmeth=(1,1),font=scorefont25)
 		while True:
 			self.draw()
 			if self.checkbuttons() or self.buttons["back"].pressed:
@@ -1121,6 +1121,7 @@ class MainGame():
 				if self.mode==0:
 					del self.buttons["height"]
 					del self.buttons["blines"]
+					del self.buttons["bint"]
 				else:
 					self.buttons["height"]=Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height: %s"%self.bheight,posmeth=(1,1))
 					self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Objective: %s"%self.blines,posmeth=(1,1),font=scorefont25)
