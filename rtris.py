@@ -1048,7 +1048,11 @@ class MainGame():
 					elif event.key==strg["pause"] or event.key==pygame.K_PAUSE:
 						self.board.pause()
 					elif event.key==strg["screenshot"]:
-						dprint("Screenshot saved in %s."%pgshot.dumppg(self.screen,os.path.join(curpath,"screenshots")))
+						succ,fp=pgshot.dumppg(self.screen,os.path.join(curpath,"screenshots"))
+						if succ:
+							dprint("Saved screenshot in %s."%fp)
+						else:
+							dprint("Couldn't save screenshot in %s."%fp)
 				elif event.type==pygame.KEYUP:
 					if event.key==strg["drop"]:
 						K_DROP=False

@@ -9,7 +9,15 @@ def getFileName(ext:str="png")->str:
 	if ext.startswith('.'):
 		ext=ext[1:]
 	return "screenshot_%s.%s.%s-%s.%s.%s."%getTime()+ext
-def dumppg(surface:pygame.Surface,path:str="./screenshots/")->str:
+def dumppg(surface:pygame.Surface,path:str="./screenshots/")->(bool,str):
+	if not os.path.exists(path):
+		os.makedirs(path)
 	f=os.path.join(path,getFileName(ext="png"))
-	pygame.image.save(surface,f)
-	return f
+	if os.path.exists(f):
+		return False,f
+	try:
+		pygame.image.save(surface,f)
+	except:
+		return False,f
+	else:
+		return True,f
