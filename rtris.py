@@ -12,6 +12,7 @@ from urllib.error import URLError
 from re import fullmatch
 from commoncodes import CommonCode,settb
 import zipfile
+import pgshot
 settb(False)
 
 K_DROP=False
@@ -46,7 +47,8 @@ defstrg={
 	"rot":pygame.K_PAGEUP,
 	"rot1":pygame.K_PAGEDOWN,
 	"exit":pygame.K_ESCAPE,
-	"pause":pygame.K_p}
+	"pause":pygame.K_p,
+	"screenshot":pygame.K_F2}
 defaults={
 	"strg":defstrg,
 	"fullscreen":False,
@@ -1045,6 +1047,8 @@ class MainGame():
 						self.board.rotate_alive(-1)
 					elif event.key==strg["pause"] or event.key==pygame.K_PAUSE:
 						self.board.pause()
+					elif event.key==strg["screenshot"]:
+						dprint("Screenshot saved in %s."%pgshot.dumppg(self.screen,os.path.join(curpath,"screenshots")))
 				elif event.type==pygame.KEYUP:
 					if event.key==strg["drop"]:
 						K_DROP=False
