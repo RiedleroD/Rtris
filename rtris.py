@@ -974,21 +974,29 @@ class MainGame():
 					upcoming=Block(typ=self.board.upcoming[0],x=0,y=0)
 					for x,y in upcoming.rects[0]:
 						if upcoming.typ==0:
-							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.5+x,0.5+y,1,1))
+							rect=get_rect(11.5+x,0.5+y,1,1)
 						elif upcoming.typ==1:
-							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.65+y,1,1))
+							rect=get_rect(11.65+x,0.65+y,1,1)
 						elif upcoming.typ==2:
-							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.65+x,0.35+y,1,1))
+							rect=get_rect(11.65+x,0.35+y,1,1)
 						elif upcoming.typ==3:
-							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11+x,0.25+y,1,1))
+							rect=get_rect(11+x,0.25+y,1,1)
 						elif upcoming.typ==4:
-							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
+							rect=get_rect(11.25+x,0.5+y,1,1)
 						elif upcoming.typ==5:
-							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.5+y,1,1))
+							rect=get_rect(11.25+x,0.5+y,1,1)
 						elif upcoming.typ==6:
-							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],get_rect(11.25+x,0.35+y,1,1))
+							rect=get_rect(11.25+x,0.35+y,1,1)
+						else:
+							raise ValueError("Block typ can only be 0-6, but it is %s instead."%upcoming.typ)
+						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],rect)
+						if conf["sprites"]:
+							self.screen.blit(pygame.transform.scale(SPRITES["blocks"][upcoming.typ],rect[2:]),rect)
 					for x,y in upcoming.rects[0]:
-						pygame.draw.rect(self.screen,upcoming.color,get_rect(12+x*0.5,1+y*0.5,0.5,0.5))
+						rect=get_rect(12+x*0.5,1+y*0.5,0.5,0.5)
+						pygame.draw.rect(self.screen,upcoming.color,rect)
+						if conf["sprites"]:
+							self.screen.blit(pygame.transform.scale(SPRITES["blocks"][upcoming.typ],rect[2:]),rect)
 				self.board.draw(curtain)
 				self.screen.blit(pygame.transform.scale(self.board.surface,(HEIGHT//2,HEIGHT)),(0,0))
 				if headsup!="" and type(headsup)==str:
