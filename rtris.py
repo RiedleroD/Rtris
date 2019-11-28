@@ -867,7 +867,7 @@ If there are multiple blocks on the same field (which shouldn't happen), then th
 					if pos!=None:
 						x,y=pos
 						try:
-							self.surface.blit(SPRITES["blocks"][block.typ],(x*meta["bimgsize"],y*meta["bimgsize"]))
+							self.surface.blit(pygame.transform.rotate(SPRITES["blocks"][block.typ],block.rotation*90),(x*meta["bimgsize"],y*meta["bimgsize"]))
 						except KeyError:
 							pygame.draw.rect(self.surface,block.color,(x*meta["bimgsize"],y*meta["bimgsize"],meta["bimgsize"],meta["bimgsize"]))
 			for ln in self.clearing:
