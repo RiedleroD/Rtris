@@ -377,11 +377,12 @@ pygame.display.set_caption("RTris")
 scorefont=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",30)
 scorefont25=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",25)
 SPRITES={"blocks":{}}
+TEMPSAVE={}	#space for mostly transformed sprites
 sprtpaths=[]
 for i in range(7):
 	img=os.path.join(spritepath,"block_%s.png"%i)
 	try:
-		SPRITES["blocks"][i]=pygame.image.load(img)
+		SPRITES["blocks"][i]=pygame.image.load(img).convert_alpha()
 	except pygame.error:
 		dprint("Couldn't load image: %s"%img)
 	else:
@@ -867,9 +868,17 @@ If there are multiple blocks on the same field (which shouldn't happen), then th
 					if pos!=None:
 						x,y=pos
 						try:
-							self.surface.blit(pygame.transform.rotate(SPRITES["blocks"][block.typ],block.rotation*90),(x*meta["bimgsize"],y*meta["bimgsize"]))
+							SPRITES["blocks"][block.typ]
 						except KeyError:
 							pygame.draw.rect(self.surface,block.color,(x*meta["bimgsize"],y*meta["bimgsize"],meta["bimgsize"],meta["bimgsize"]))
+						else:
+							key="R%sS%s"%(block.rotation,block.typ)
+							try:
+								TEMPSAVE[key]
+							except KeyError:
+								TEMPSAVE[key]=pygame.transform.rotate(SPRITES["blocks"][block.typ],block.rotation*90)
+							self.surface.blit(TEMPSAVE[key],(x*meta["bimgsize"],y*meta["bimgsize"]))
+							del key
 			for ln in self.clearing:
 				if self.blinking>100:
 					pygame.draw.rect(self.surface,(255,255,255),(0,ln*meta["bimgsize"],10*meta["bimgsize"],meta["bimgsize"]))
@@ -971,7 +980,6 @@ class MainGame():
 	def __init__(self):
 		self.screen=screen
 		self.buttons={}
-		self.tempsave={}
 	def draw(self,curtain:list=[],headsup:str="",show_upcoming:bool=True):
 		self.screen.fill((0,0,0))
 		if self.running:
@@ -1010,14 +1018,17 @@ class MainGame():
 						if conf["sprites"]:
 							try:
 								SPRITES["blocks"][upcoming.typ]
-								try:
-									self.tempsave["AS%s"%upcoming.typ]
-								except KeyError:
-									self.tempsave["AS%s"%upcoming.typ]=SPRITES["blocks"][upcoming.typ].copy()
-									self.tempsave["AS%s"%upcoming.typ].fill((0,0,0,128),special_flags=pygame.BLEND_RGBA_SUB)
-								self.screen.blit(pygame.transform.scale(self.tempsave["AS%s"%upcoming.typ],rect[2:]),rect)
 							except KeyError:
 								pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],rect)
+							else:
+								key="AS%s"%upcoming.typ
+								try:
+									TEMPSAVE[key]
+								except KeyError:
+									TEMPSAVE[key]=SPRITES["blocks"][upcoming.typ].copy()
+									TEMPSAVE[key].fill((0,0,0,128),special_flags=pygame.BLEND_RGBA_SUB)
+								self.screen.blit(pygame.transform.scale(TEMPSAVE[key],rect[2:]),rect)
+								del key
 						else:
 							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],rect)
 					for x,y in upcoming.rects[0]:
