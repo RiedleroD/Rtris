@@ -1014,7 +1014,7 @@ class MainGame():
 									self.tempsave["AS%s"%upcoming.typ]
 								except KeyError:
 									self.tempsave["AS%s"%upcoming.typ]=SPRITES["blocks"][upcoming.typ].copy()
-									self.tempsave["AS%s"%upcoming.typ].fill((128,128,128),special_flags=pygame.BLEND_SUB)
+									self.tempsave["AS%s"%upcoming.typ].fill((0,0,0,128),special_flags=pygame.BLEND_RGBA_SUB)
 								self.screen.blit(pygame.transform.scale(self.tempsave["AS%s"%upcoming.typ],rect[2:]),rect)
 							except KeyError:
 								pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],rect)
