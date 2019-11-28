@@ -988,7 +988,6 @@ class MainGame():
 				screen.blit(scorefont.render("Triples: "+str(self.board.threeln),(255,255,255))[0],(11*BLOCK_SIZE,7*BLOCK_SIZE))
 				screen.blit(scorefont.render("Doubles: "+str(self.board.twoln),(255,255,255))[0],(11*BLOCK_SIZE,8*BLOCK_SIZE))
 				screen.blit(scorefont.render("Singles: "+str(self.board.oneln),(255,255,255))[0],(11*BLOCK_SIZE,9*BLOCK_SIZE))
-				#pygame.draw.rect(screen,(125,125,125),get_rect(11.5,1.5,2.5,2.5))
 				if show_upcoming:
 					upcoming=Block(typ=self.board.upcoming[0],x=0,y=0)
 					for x,y in upcoming.rects[0]:
