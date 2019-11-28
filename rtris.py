@@ -24,6 +24,7 @@ except NameError:
 	curpath=os.path.abspath(os.path.dirname(inspect.getframeinfo(inspect.currentframe()).filename))
 datapath=os.path.join(curpath,"gamedata")
 spritepath=os.path.join(datapath,"sprites")
+metapath=os.path.join(datapath,".metadata")
 
 def get_git_head():
 	headfile=os.path.join(curpath,".git/HEAD")
@@ -58,6 +59,16 @@ defaults={
 	"update_channel":0,
 	"update":True,
 	"sprites":True}
+defmeta={
+	"bimgsize":6}
+
+if not os.path.exists(metapath):
+	meta=defmeta
+	with open(metapath,"w+") as metafile:
+		json.dump(meta,metafile,ensure_ascii=False)
+else:
+	with open(metapath,"r") as metafile:
+		meta=json.load(metafile)
 
 if not os.path.exists(confpath):
 	strg=defstrg
@@ -84,6 +95,11 @@ for setting,default in defstrg.items():
 		conf["strg"][setting]
 	except KeyError:
 		conf["strg"][setting]=default
+for setting,default in defmeta.items():
+	try:
+		meta[setting]
+	except KeyError:
+		meta[setting]=default
 
 update=conf["update"]
 debug=False
@@ -637,7 +653,7 @@ class Board():
 		self.rects2fall=[]
 		self.upcoming=sorted(range(7),key=lambda x:random.random())
 		if conf["sprites"]:
-			self.surface=pygame.Surface((60,120),pygame.HWSURFACE)
+			self.surface=pygame.Surface((10*meta["bimgsize"],20*meta["bimgsize"]),pygame.HWSURFACE)
 		else:
 			self.surface=pygame.Surface((10,20),pygame.HWSURFACE)
 	def checklns(self):
@@ -846,19 +862,21 @@ If there are multiple blocks on the same field (which shouldn't happen), then th
 			for block in self.blocks:
 				if block.alive:
 					for x,y in block.get_shadow(self):
-						pygame.draw.rect(self.surface,(125,125,125),(x*6,y*6,6,6))
+						pygame.draw.rect(self.surface,(125,125,125),(x*meta["bimgsize"],y*meta["bimgsize"],meta["bimgsize"],meta["bimgsize"]))
 				for pos in block.rects[block.rotation]:
 					if pos!=None:
 						x,y=pos
-						pygame.draw.rect(self.surface,block.color,(x*6,y*6,6,6))
-						self.surface.blit(SPRITES["blocks"][block.typ],(x*6,y*6))
+						try:
+							self.surface.blit(SPRITES["blocks"][block.typ],(x*meta["bimgsize"],y*meta["bimgsize"]))
+						except KeyError:
+							pygame.draw.rect(self.surface,block.color,(x*meta["bimgsize"],y*meta["bimgsize"],meta["bimgsize"],meta["bimgsize"]))
 			for ln in self.clearing:
 				if self.blinking>100:
-					pygame.draw.rect(self.surface,(255,255,255),(0,ln*6,60,6))
+					pygame.draw.rect(self.surface,(255,255,255),(0,ln*meta["bimgsize"],10*meta["bimgsize"],meta["bimgsize"]))
 				elif self.blinking>50:
-					pygame.draw.rect(self.surface,(200,200,200),(0,ln*6,60,6))
+					pygame.draw.rect(self.surface,(200,200,200),(0,ln*meta["bimgsize"],10*meta["bimgsize"],meta["bimgsize"]))
 			for ln in curtain:
-				pygame.draw.rect(self.surface,(0,0,0),(0,ln*6,60,6))
+				pygame.draw.rect(self.surface,(0,0,0),(0,ln*meta["bimgsize"],10*meta["bimgsize"],meta["bimgsize"]))
 		else:
 			for block in self.blocks:
 				if block.alive:
@@ -953,6 +971,7 @@ class MainGame():
 	def __init__(self):
 		self.screen=screen
 		self.buttons={}
+		self.tempsave={}
 	def draw(self,curtain:list=[],headsup:str="",show_upcoming:bool=True):
 		self.screen.fill((0,0,0))
 		if self.running:
@@ -989,14 +1008,28 @@ class MainGame():
 							rect=get_rect(11.25+x,0.35+y,1,1)
 						else:
 							raise ValueError("Block typ can only be 0-6, but it is %s instead."%upcoming.typ)
-						pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],rect)
 						if conf["sprites"]:
-							self.screen.blit(pygame.transform.scale(SPRITES["blocks"][upcoming.typ],rect[2:]),rect)
+							try:
+								SPRITES["blocks"][upcoming.typ]
+								try:
+									self.tempsave["AS%s"%upcoming.typ]
+								except KeyError:
+									self.tempsave["AS%s"%upcoming.typ]=SPRITES["blocks"][upcoming.typ].copy()
+									self.tempsave["AS%s"%upcoming.typ].fill((128,128,128),special_flags=pygame.BLEND_SUB)
+								self.screen.blit(pygame.transform.scale(self.tempsave["AS%s"%upcoming.typ],rect[2:]),rect)
+							except KeyError:
+								pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],rect)
+						else:
+							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],rect)
 					for x,y in upcoming.rects[0]:
 						rect=get_rect(12+x*0.5,1+y*0.5,0.5,0.5)
-						pygame.draw.rect(self.screen,upcoming.color,rect)
 						if conf["sprites"]:
-							self.screen.blit(pygame.transform.scale(SPRITES["blocks"][upcoming.typ],rect[2:]),rect)
+							try:
+								self.screen.blit(pygame.transform.scale(SPRITES["blocks"][upcoming.typ],rect[2:]),rect)
+							except KeyError:
+								pygame.draw.rect(self.screen,upcoming.color,rect)
+						else:
+							pygame.draw.rect(self.screen,upcoming.color,rect)
 				self.board.draw(curtain)
 				self.screen.blit(pygame.transform.scale(self.board.surface,(HEIGHT//2,HEIGHT)),(0,0))
 				if headsup!="" and type(headsup)==str:
@@ -1364,7 +1397,7 @@ class MainGame():
 
 if __name__=="__main__":
 	try:
-		dprint("Configurations:\n  strg:\n    left:%s\n    right:%s\n    drop:%s\n    idrop:%s\n    rot:%s\n    rot1:%s\n    exit:%s\n    pause:%s\n  fullscreen:%s\n  show_fps:%s\n  max_fps:%s\n  version:%s\n  update_channel:%s\n  update:%s\n  sprites:%s"%(conf["strg"]["left"],conf["strg"]["right"],conf["strg"]["drop"],conf["strg"]["idrop"],conf["strg"]["rot"],conf["strg"]["rot1"],conf["strg"]["exit"],conf["strg"]["pause"],conf["fullscreen"],conf["show_fps"],	conf["max_fps"],conf["version"],conf["update_channel"],conf["update"],conf["sprites"]))
+		dprint("Configurations:\n  strg:\n    left:%s\n    right:%s\n    drop:%s\n    idrop:%s\n    rot:%s\n    rot1:%s\n    exit:%s\n    pause:%s\n  fullscreen:%s\n  show_fps:%s\n  max_fps:%s\n  version:%s\n  update_channel:%s\n  update:%s\n  sprites:%s\nMetadata:\n  bimgsize:%s"%(conf["strg"]["left"],conf["strg"]["right"],conf["strg"]["drop"],conf["strg"]["idrop"],conf["strg"]["rot"],conf["strg"]["rot1"],conf["strg"]["exit"],conf["strg"]["pause"],conf["fullscreen"],conf["show_fps"],	conf["max_fps"],conf["version"],conf["update_channel"],conf["update"],conf["sprites"],meta["bimgsize"]))
 		try:
 			if os.path.exists(os.path.join(os.path.dirname(__file__),".git/")):
 				dprint("Skipped updating because of detected git repository")
