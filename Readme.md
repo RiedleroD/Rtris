@@ -18,7 +18,7 @@ If you want to be a playtester, write an email to riedler@gelse.net or join the 
 
 ### CHANGELOG
 
-v1.0<sub>unfinished</sub>
+#### v1.0.x<sub>unfinished</sub>
 - v1.0a5
   - default update channel is now Release
   - game speed is now authentic
@@ -68,8 +68,9 @@ v1.0<sub>unfinished</sub>
     - added config file (settings now get saved)
     - added Fullscreen/Borderless setting
 
-- v0.3
+#### v0.x
 
+- v0.3
   - Changed font to Linux Biolinum O, or, if not found, Arial
   - various smaller improvements & optimisations
   - Pause Screen now covers the whole screen
@@ -82,11 +83,9 @@ v1.0<sub>unfinished</sub>
   - silenced pygame
 
 - v0.2
-
   - added Death screen
   - you can now pause with the PAUSE key.
 
 - v0.1
-
   - Initial game ~~do not play~~
 
