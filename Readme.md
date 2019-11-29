@@ -19,6 +19,22 @@ If you want to be a playtester, write an email to riedler@gelse.net or join the 
 ### CHANGELOG
 
 v1.0<sub>unfinished</sub>
+- v1.0a5
+  - default update channel is now Release
+  - game speed is now authentic
+  - blocks now bump off stuff when rotating (max. 1 block down,left, or right)
+  - added game mode B
+    - a randomly generated field of blocks (height and intensity can get specified) spawns at start
+    - players win after they cleared a certain amount of lines (can get specified)
+  - optimized argument parsing
+    - added -w and -f arguments
+    - fixed many, many bugs when parsing arguments
+  - integrated CommonCodes module (better exceptions)
+  - bug fixes
+    - fixed window issues in windows (such irony)
+    - fixed crashes when config file was corrupt
+    - buttons now shrink the text instead of overflowing when too much text is given
+  - optimizations
 - v1.0a4
   - heavy optimization
   - you can now double-click Rtris.py and it executes directly
