@@ -55,38 +55,38 @@ v1.0<sub>unfinished</sub>
 	- added LICENSE
 	- added Changelog to Readme
 - v1.0a2
-	- added setup.py for compiling
-	- fixed bugs
-		- speed now resets properly between runs
-		- Pause screen doesn't crash the game anymore
-		- Shebang is now in the proper format
-		- fixed issues with multiple monitors
+  - added setup.py for compiling
+  - fixed bugs
+    - speed now resets properly between runs
+    - Pause screen doesn't crash the game anymore
+    - Shebang is now in the proper format
+    - fixed issues with multiple monitors
 
 - v1.0a1
-	- added Readme.md
-	- enhanced settings
-		- added config file (settings now get saved)
-		- added Fullscreen/Borderless setting
+  - added Readme.md
+  - enhanced settings
+    - added config file (settings now get saved)
+    - added Fullscreen/Borderless setting
 
-v0.3
+- v0.3
 
-- Changed font to Linux Biolinum O, or, if not found, Arial
-- various smaller improvements & optimisations
-- Pause Screen now covers the whole screen
-- collision now works again
-- added main menu
-	- added start button (duh)
-	- added settings
-		- added control settings
-	- it now goes there instead of closing the game when the player loses#
-- silenced pygame
+  - Changed font to Linux Biolinum O, or, if not found, Arial
+  - various smaller improvements & optimisations
+  - Pause Screen now covers the whole screen
+  - collision now works again
+  - added main menu
+    - added start button (duh)
+    - added settings
+      - added control settings
+    - it now goes there instead of closing the game when the player loses#
+  - silenced pygame
 
-v0.2
+- v0.2
 
-- added Death screen
-- you can now pause with the PAUSE key.
+  - added Death screen
+  - you can now pause with the PAUSE key.
 
-v0.1
+- v0.1
 
-- Initial game ~~do not play~~
+  - Initial game ~~do not play~~
 
