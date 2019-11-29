@@ -60,7 +60,7 @@ defaults={
 	"update":True,
 	"sprites":True}
 defmeta={
-	"bimgsize":6}
+	"bimgsize":12}
 
 if not os.path.exists(metapath):
 	meta=defmeta
@@ -387,9 +387,18 @@ for i in range(7):
 		dprint("Couldn't load image: %s"%img)
 	else:
 		sprtpaths.append(img)
-if len(SPRITES["blocks"])>0:
+img=os.path.join(spritepath,"button.png")
+try:
+	SPRITES["button"]=pygame.image.load(img).convert_alpha()
+except pygame.error:
+	dprint("Couldn't load image: %s"%img)
+else:
+	sprtpaths.append(img)
+if len(sprtpaths)>0:
 	dprint("Found Sprites:",*sprtpaths,sep="\n  ")
+
 del sprtpaths
+del img
 
 def pygame_input(txt:str="")->str:
 	char=""
@@ -923,10 +932,7 @@ def generate_mush(height:int=4,intensity:int=7):
 
 class Button():
 	pressed=False
-	bgcolor=(255,255,255)
-	color=(0,0,0)
-	txt="Button"
-	def __init__(self,x:int=0,y:int=0,width:int=WIDTH//10,height:int=HEIGHT//15,bgcolor:(int,int,int)=(255,255,255),txt:str="Button",txtcolor:(int,int,int)=(0,0,0),font:pygame.freetype.Font=scorefont,posmeth:[int,int]=(0,0)):
+	def __init__(self,x:int=0,y:int=0,width:int=WIDTH//10,height:int=HEIGHT//15,bgcolor:(int,int,int)=(0,0,0),txt:str="Button",txtcolor:(int,int,int)=(255,255,255),font:pygame.freetype.Font=scorefont,posmeth:[int,int]=(0,0)):
 		self.bgcolor=bgcolor
 		self.color=txtcolor
 		self.txt=txt
@@ -935,8 +941,7 @@ class Button():
 		self.font=font
 		text=font.render(txt,txtcolor)[0]
 		self.surface=pygame.Surface((width,height))
-		self.surface.fill(bgcolor)
-		self.surface.blit(text,(width//2-text.get_width()//2,height//2-text.get_height()//2))
+		self.render()
 		self.rect=[None,None]
 		if posmeth[0]==0:
 			self.rect[0]=x-self.surface.get_width()//2
@@ -961,9 +966,16 @@ class Button():
 		return self.rect.collidepoint(pos)
 	def render(self)	->	pygame.Surface:
 		text=self.font.render(self.txt,self.color)[0]
-		if text.get_width()>self.surface.get_width():
-			text=pygame.transform.smoothscale(text,(self.surface.get_width(),text.get_height()))
+		if text.get_width()>self.surface.get_width()-8:
+			text=pygame.transform.smoothscale(text,(self.surface.get_width()-8,text.get_height()))
 		self.surface.fill(self.bgcolor)
+		if conf["sprites"]:
+			try:
+				self.surface.blit(pygame.transform.scale(SPRITES["button"],self.surface.get_size()),(0,0))
+			except KeyError:
+				pass
+		else:
+			pygame.draw.rect(self.surface,self.color,(0,0,*self.surface.get_size()),5)
 		self.surface.blit(text,(self.surface.get_width()//2-text.get_width()//2,self.surface.get_height()//2-text.get_height()//2))
 		return self.surface
 
@@ -1387,7 +1399,8 @@ class MainGame():
 					self.buttons["sprites"].color=(0,255,0)
 				else:
 					self.buttons["sprites"].color=(255,0,0)
-				self.buttons["sprites"].render()
+				for button in self.buttons.values():
+					button.render()
 	def wait4buttonpress(self):
 		while True:
 			event=pygame.event.wait()
