@@ -968,13 +968,13 @@ class Button():
 		text=self.font.render(self.txt,self.color)[0]
 		if text.get_width()>self.surface.get_width()-8:
 			text=pygame.transform.smoothscale(text,(self.surface.get_width()-8,text.get_height()))
-		self.surface.fill(self.bgcolor)
 		if conf["sprites"]:
 			try:
 				self.surface.blit(pygame.transform.scale(SPRITES["button"],self.surface.get_size()),(0,0))
 			except KeyError:
 				pass
 		else:
+			self.surface.fill(self.bgcolor)
 			pygame.draw.rect(self.surface,self.color,(0,0,*self.surface.get_size()),5)
 		self.surface.blit(text,(self.surface.get_width()//2-text.get_width()//2,self.surface.get_height()//2-text.get_height()//2))
 		return self.surface
