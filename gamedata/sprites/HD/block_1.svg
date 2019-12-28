@@ -1,0 +1,7 @@
+<svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" version="1">
+	<style>
+		.s0{fill:#000;}
+	</style>
+	<path d="M0 0V48H48V0Z" fill="#00f" fill="#ff8000"/>
+	<path d="M48 0 0 36V12ZM0 48 48 12v24z" fill="#000"/>
+</svg>

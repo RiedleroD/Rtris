@@ -13,6 +13,7 @@ from re import fullmatch
 from commoncodes import CommonCode,settb
 import zipfile
 import pgshot
+from svg import Parser as SVGP, Rasterizer as SVGR
 settb(False)
 
 K_DROP=False
@@ -23,7 +24,6 @@ except NameError:
 	import inspect
 	curpath=os.path.abspath(os.path.dirname(inspect.getframeinfo(inspect.currentframe()).filename))
 datapath=os.path.join(curpath,"gamedata")
-spritepath=os.path.join(datapath,"sprites")
 metapath=os.path.join(datapath,".metadata")
 
 def get_git_head():
@@ -39,6 +39,14 @@ def get_git_head():
 		return tag.replace(" ","").replace("\n","")
 	else:
 		return None
+
+def load_svg(path):
+	svg=SVGP.parse_file(path)
+	rast=SVGR()
+	w=int(svg.width)
+	h=int(svg.height)
+	buff=rast.rasterize(svg,w,h)
+	return pygame.image.frombuffer(buff,(w,h),"RGBA")
 
 defstrg={
 	"left":pygame.K_LEFT,
@@ -57,10 +65,11 @@ defaults={
 	"max_fps":60,
 	"version":get_git_head(),
 	"update_channel":0,
-	"update":True,
-	"sprites":True}
+	"update":True}
 defmeta={
-	"bimgsize":12}
+	"bimgsize":12,
+	"texturepack":"default",
+	"smoothscale":False}
 
 if not os.path.exists(metapath):
 	meta=defmeta
@@ -376,29 +385,35 @@ pygame.display.set_caption("RTris")
 
 scorefont=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",30)
 scorefont25=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",25)
-SPRITES={"blocks":{}}
-TEMPSAVE={}	#space for mostly transformed sprites
-sprtpaths=[]
-for i in range(7):
-	img=os.path.join(spritepath,"block_%s.png"%i)
-	try:
-		SPRITES["blocks"][i]=pygame.image.load(img).convert_alpha()
-	except pygame.error:
-		dprint("Couldn't load image: %s"%img)
+def load_sprites():
+	global spritepath,SPRITES,TEMPSAVE,meta
+	SPRITES={"blocks":{}}
+	TEMPSAVE={}	#space for mostly transformed sprites
+	bimg=None
+	if not meta["texturepack"]==None:
+		spritepath=os.path.join(datapath,"sprites",str(meta["texturepack"]))
+		smd=os.path.join(spritepath,".metadata")
+		if os.path.exists(smd):
+			with open(smd,"r") as metafile:
+				meta.update(json.load(metafile))
+		del smd
+		sprtpaths=[]
+		for root,dirs,files in os.walk(spritepath,topdown=False):
+			for fname in files:
+				name,ext=os.path.splitext(fname)
+				if ext.lower()==".png":
+					SPRITES[name]=pygame.image.load(os.path.join(root,fname))
+				elif ext.lower()==".svg":
+					SPRITES[name]=load_svg(os.path.join(root,fname))
+				if name.startswith("block_") and bimg==None:
+					bimg=SPRITES[name].get_width()
+		if len(sprtpaths)>0:
+			dprint("Found Sprites:",*sprtpaths,sep="\n  ")
 	else:
-		sprtpaths.append(img)
-img=os.path.join(spritepath,"button.png")
-try:
-	SPRITES["button"]=pygame.image.load(img).convert_alpha()
-except pygame.error:
-	dprint("Couldn't load image: %s"%img)
-else:
-	sprtpaths.append(img)
-if len(sprtpaths)>0:
-	dprint("Found Sprites:",*sprtpaths,sep="\n  ")
-
-del sprtpaths
-del img
+		spritepath=None
+	if bimg!=None:
+		meta["bimgsize"]=bimg
+load_sprites()
 
 def pygame_input(txt:str="")->str:
 	char=""
@@ -662,7 +677,7 @@ class Board():
 		self.clearing=[]
 		self.rects2fall=[]
 		self.upcoming=sorted(range(7),key=lambda x:random.random())
-		if conf["sprites"]:
+		if meta["texturepack"]:
 			self.surface=pygame.Surface((10*meta["bimgsize"],20*meta["bimgsize"]),pygame.HWSURFACE)
 		else:
 			self.surface=pygame.Surface((10,20),pygame.HWSURFACE)
@@ -868,7 +883,7 @@ If there are multiple blocks on the same field (which shouldn't happen), then th
 				del self.blocks[block]
 	def draw(self,curtain:list=[]):
 		self.surface.fill((100,100,100))
-		if conf["sprites"]:
+		if meta["texturepack"]:
 			for block in self.blocks:
 				if block.alive:
 					for x,y in block.get_shadow(self):
@@ -877,7 +892,7 @@ If there are multiple blocks on the same field (which shouldn't happen), then th
 					if pos!=None:
 						x,y=pos
 						try:
-							SPRITES["blocks"][block.typ]
+							SPRITES["block_%s"%(block.typ)]
 						except KeyError:
 							pygame.draw.rect(self.surface,block.color,(x*meta["bimgsize"],y*meta["bimgsize"],meta["bimgsize"],meta["bimgsize"]))
 						else:
@@ -885,7 +900,7 @@ If there are multiple blocks on the same field (which shouldn't happen), then th
 							try:
 								TEMPSAVE[key]
 							except KeyError:
-								TEMPSAVE[key]=pygame.transform.rotate(SPRITES["blocks"][block.typ],block.rotation*90)
+								TEMPSAVE[key]=pygame.transform.rotate(SPRITES["block_%s"%(block.typ)],block.rotation*90)
 							self.surface.blit(TEMPSAVE[key],(x*meta["bimgsize"],y*meta["bimgsize"]))
 							del key
 			for ln in self.clearing:
@@ -940,7 +955,7 @@ class Button():
 		self.height=height
 		self.font=font
 		text=font.render(txt,txtcolor)[0]
-		self.surface=pygame.Surface((width,height))
+		self.surface=pygame.Surface((width,height),pygame.SRCALPHA)
 		self.render()
 		self.rect=[None,None]
 		if posmeth[0]==0:
@@ -968,12 +983,21 @@ class Button():
 		text=self.font.render(self.txt,self.color)[0]
 		if text.get_width()>self.surface.get_width()-8:
 			text=pygame.transform.smoothscale(text,(self.surface.get_width()-8,text.get_height()))
-		if conf["sprites"]:
+		if meta["texturepack"]:
+			self.surface.fill((0,0,0,0))
+			if meta["smoothscale"]:
+				scale=pygame.transform.smoothscale
+			else:
+				scale=pygame.transform.scale
 			try:
-				self.surface.blit(pygame.transform.scale(SPRITES["button"],self.surface.get_size()),(0,0))
+				self.surface.blit(scale(SPRITES["button"],self.surface.get_size()),(0,0))
 			except KeyError:
-				pass
+				notexture=True
+			else:
+				notexture=False
 		else:
+			notexture=True
+		if notexture:
 			self.surface.fill(self.bgcolor)
 			pygame.draw.rect(self.surface,self.color,(0,0,*self.surface.get_size()),5)
 		self.surface.blit(text,(self.surface.get_width()//2-text.get_width()//2,self.surface.get_height()//2-text.get_height()//2))
@@ -1026,10 +1050,10 @@ class MainGame():
 						elif upcoming.typ==6:
 							rect=get_rect(11.25+x,0.35+y,1,1)
 						else:
-							raise ValueError("Block typ can only be 0-6, but it is %s instead."%upcoming.typ)
-						if conf["sprites"]:
+							raise ValueError("Block.typ can only be 0-6, but it is %s instead."%upcoming.typ)
+						if meta["texturepack"]:
 							try:
-								SPRITES["blocks"][upcoming.typ]
+								SPRITES["block_%s"%(upcoming.typ)]
 							except KeyError:
 								pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],rect)
 							else:
@@ -1037,17 +1061,17 @@ class MainGame():
 								try:
 									TEMPSAVE[key]
 								except KeyError:
-									TEMPSAVE[key]=SPRITES["blocks"][upcoming.typ].copy()
-									TEMPSAVE[key].fill((0,0,0,128),special_flags=pygame.BLEND_RGBA_SUB)
+									TEMPSAVE[key]=SPRITES["block_%s"%(upcoming.typ)].copy()
+									TEMPSAVE[key].set_alpha(128)
 								self.screen.blit(pygame.transform.scale(TEMPSAVE[key],rect[2:]),rect)
 								del key
 						else:
 							pygame.draw.rect(self.screen,[channel//3 for channel in upcoming.color],rect)
 					for x,y in upcoming.rects[0]:
 						rect=get_rect(12+x*0.5,1+y*0.5,0.5,0.5)
-						if conf["sprites"]:
+						if meta["texturepack"]:
 							try:
-								self.screen.blit(pygame.transform.scale(SPRITES["blocks"][upcoming.typ],rect[2:]),rect)
+								self.screen.blit(pygame.transform.scale(SPRITES["block_%s"%(upcoming.typ)],rect[2:]),rect)
 							except KeyError:
 								pygame.draw.rect(self.screen,upcoming.color,rect)
 						else:
@@ -1223,6 +1247,9 @@ class MainGame():
 				self.buttons["bint"].txt="Intensity: %s"%self.bint
 				self.buttons["bint"].render()
 	def settings(self):
+		spritepath=os.path.join(datapath,"sprites")
+		spritepaths=[path for path in os.listdir(spritepath) if os.path.isdir(os.path.join(spritepath,path))]
+		spritepaths.append(None)
 		self.buttons={
 			"back":Button(x=CENTERx,y=BOTTOM_SIDE,txt="Back",posmeth=(0,-1)),
 			"strgleft":Button(x=LEFT_SIDE,y=TOP_SIDE,txt="Left",posmeth=(1,1))}
@@ -1255,14 +1282,9 @@ class MainGame():
 		self.buttons["update"]=Button(x=RIGHT_SIDE,y=self.buttons["max_fps"].rect.bottom+10,txtcolor=updtcolr,txt="Update",posmeth=(-1,1))
 		uchans=["Stable","Devel","Canary"]
 		self.buttons["uchannel"]=Button(x=RIGHT_SIDE,y=self.buttons["update"].rect.bottom+10,txt=uchans[conf["update_channel"]],posmeth=(-1,1))
-		if conf["sprites"]:
-			sprtcolr=(0,255,0)
-		else:
-			sprtcolr=(255,0,0)
-		self.buttons["sprites"]=Button(x=RIGHT_SIDE,y=self.buttons["uchannel"].rect.bottom+10,txtcolor=sprtcolr,txt="Sprites",posmeth=(-1,1))
+		self.buttons["sprites"]=Button(x=RIGHT_SIDE,y=self.buttons["uchannel"].rect.bottom+10,txt="Sprites:%s"%(meta["texturepack"]),posmeth=(-1,1))
 		del updtcolr
 		del fulscrntxt
-		del sprtcolr
 		while True:
 			self.draw()
 			if self.checkbuttons() or self.buttons["back"].pressed:
@@ -1394,11 +1416,9 @@ class MainGame():
 				self.buttons["uchannel"].render()
 			elif self.buttons["sprites"].pressed:
 				self.buttons["sprites"].pressed=False
-				conf["sprites"]=not conf["sprites"]
-				if conf["sprites"]:
-					self.buttons["sprites"].color=(0,255,0)
-				else:
-					self.buttons["sprites"].color=(255,0,0)
+				meta["texturepack"]=spritepaths[(spritepaths.index(meta["texturepack"])+1)%len(spritepaths)]
+				self.buttons["sprites"].txt="Sprites:%s"%meta["texturepack"]
+				load_sprites()
 				for button in self.buttons.values():
 					button.render()
 	def wait4buttonpress(self):
@@ -1420,7 +1440,7 @@ class MainGame():
 
 if __name__=="__main__":
 	try:
-		dprint("Configurations:\n  strg:\n    left:%s\n    right:%s\n    drop:%s\n    idrop:%s\n    rot:%s\n    rot1:%s\n    exit:%s\n    pause:%s\n  fullscreen:%s\n  show_fps:%s\n  max_fps:%s\n  version:%s\n  update_channel:%s\n  update:%s\n  sprites:%s\nMetadata:\n  bimgsize:%s"%(conf["strg"]["left"],conf["strg"]["right"],conf["strg"]["drop"],conf["strg"]["idrop"],conf["strg"]["rot"],conf["strg"]["rot1"],conf["strg"]["exit"],conf["strg"]["pause"],conf["fullscreen"],conf["show_fps"],	conf["max_fps"],conf["version"],conf["update_channel"],conf["update"],conf["sprites"],meta["bimgsize"]))
+		dprint("Configurations:\n  strg:\n    left:%s\n    right:%s\n    drop:%s\n    idrop:%s\n    rot:%s\n    rot1:%s\n    exit:%s\n    pause:%s\n  fullscreen:%s\n  show_fps:%s\n  max_fps:%s\n  version:%s\n  update_channel:%s\n  update:%s\nMetadata:\n  texturepack:%s\n  bimgsize:%s"%(conf["strg"]["left"],conf["strg"]["right"],conf["strg"]["drop"],conf["strg"]["idrop"],conf["strg"]["rot"],conf["strg"]["rot1"],conf["strg"]["exit"],conf["strg"]["pause"],conf["fullscreen"],conf["show_fps"],	conf["max_fps"],conf["version"],conf["update_channel"],conf["update"],meta["texturepack"],meta["bimgsize"]))
 		try:
 			if os.path.exists(os.path.join(os.path.dirname(__file__),".git/")):
 				dprint("Skipped updating because of detected git repository")
@@ -1438,4 +1458,6 @@ if __name__=="__main__":
 	finally:
 		with open(confpath,"w+") as conffile:
 			json.dump(conf,conffile,ensure_ascii=False)
+		with open(metapath,"w+") as metafile:
+			json.dump(meta,metafile,ensure_ascii=False)
 

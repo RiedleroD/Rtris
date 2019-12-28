@@ -1,0 +1,7 @@
+<svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" version="1">
+	<path d="M0 0V48H48V0Z" fill="#000"/>
+	<circle cx="0" cy="0" r="24" style="fill:#ff0;paint-order:normal"/>
+	<circle cx="48" cy="0" r="24" style="fill:#ff0;paint-order:normal"/>
+	<circle cx="0" cy="48" r="24" style="fill:#ff0;paint-order:normal"/>
+	<circle cx="48" cy="48" r="24" style="fill:#ff0;paint-order:normal"/>
+</svg>
