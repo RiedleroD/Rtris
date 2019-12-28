@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 # coding: utf-8
 import os,random,math,json
-from subprocess import PIPE as subPIPE
-from subprocess import Popen as subPopen
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 os.environ['SDL_VIDEO_WINDOW_POS'] = "0,0"
 import pygame,pygame.freetype
@@ -338,6 +336,8 @@ except:
 	try:
 		from AppKit import NSScreen	#Mac OS X specific
 	except:
+		from subprocess import PIPE as subPIPE
+		from subprocess import Popen as subPopen
 		try:
 			w,h=subPopen(["xrandr | grep '*'"],shell=True,stdout=subPIPE).communicate()[0].split()[0].split(b"x")
 		except Exception as e:
