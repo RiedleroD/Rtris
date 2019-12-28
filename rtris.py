@@ -1061,7 +1061,7 @@ class MainGame():
 								try:
 									TEMPSAVE[key]
 								except KeyError:
-									TEMPSAVE[key]=SPRITES["block_%s"%(upcoming.typ)].copy()
+									TEMPSAVE[key]=SPRITES["block_%s"%(upcoming.typ)].copy().convert()
 									TEMPSAVE[key].set_alpha(128)
 								self.screen.blit(pygame.transform.scale(TEMPSAVE[key],rect[2:]),rect)
 								del key
