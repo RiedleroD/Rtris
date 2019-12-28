@@ -1260,6 +1260,7 @@ class MainGame():
 		self.buttons["strgrot1"]=Button(x=LEFT_SIDE,y=self.buttons["strgrot"].rect.bottom+10,txt="Rotate \u21bc",posmeth=(1,1))
 		self.buttons["strgexit"]=Button(x=LEFT_SIDE,y=self.buttons["strgrot1"].rect.bottom+10,txt="Exit/Back",posmeth=(1,1))
 		self.buttons["strgpause"]=Button(x=LEFT_SIDE,y=self.buttons["strgexit"].rect.bottom+10,txt="Pause",posmeth=(1,1))
+		self.buttons["strgsshot"]=Button(x=LEFT_SIDE,y=self.buttons["strgpause"].rect.bottom+10,txt="Screenshot",posmeth=(1,1))
 		if conf["fullscreen"]:
 			fulscrntxt="Fullscreen"
 		else:
@@ -1369,6 +1370,16 @@ class MainGame():
 				self.buttons["strgpause"].pressed=False
 				self.buttons["strgpause"].txt="Pause"
 				self.buttons["strgpause"].render()
+			elif self.buttons["strgsshot"].pressed:
+				self.buttons["strgsshot"].txt="["+pygame.key.name(strg["screenshot"])+"]"
+				self.buttons["strgsshot"].render()
+				self.draw()
+				button=self.wait4buttonpress()
+				if button!=None:
+					strg["screenshot"]=button.key
+				self.buttons["strgsshot"].pressed=False
+				self.buttons["strgsshot"].txt="Screenshot"
+				self.buttons["strgsshot"].render()
 			elif self.buttons["fullscreen"].pressed:
 				self.buttons["fullscreen"].pressed=False
 				conf["fullscreen"]=not conf["fullscreen"]
