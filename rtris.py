@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 # coding: utf-8
-import os,random,math,json
+import os,random,math,json,sys
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 os.environ['SDL_VIDEO_WINDOW_POS'] = "0,0"
 import pygame,pygame.freetype
-from sys import argv
+argv=sys.argv
 from urllib import request as req
 from urllib.error import URLError
 from re import fullmatch
@@ -12,6 +12,7 @@ from commoncodes import CommonCode,settb
 import zipfile
 import pgshot
 from svg import Parser as SVGP, Rasterizer as SVGR
+import platform
 settb(False)
 
 K_DROP=False
@@ -23,6 +24,7 @@ except NameError:
 	curpath=os.path.abspath(os.path.dirname(inspect.getframeinfo(inspect.currentframe()).filename))
 datapath=os.path.join(curpath,"gamedata")
 metapath=os.path.join(datapath,".metadata")
+FROZEN=getattr(sys,"frozen",False)	#see if script is frozen (aka compiled)
 
 def get_git_head():
 	headfile=os.path.join(curpath,".git/HEAD")
@@ -37,6 +39,13 @@ def get_git_head():
 		return tag.replace(" ","").replace("\n","")
 	else:
 		return None
+
+def get_os():
+	arch=platform.machine()
+	if arch=="i386":
+		arch="x86"
+	return "%s-%s"%(platform.system().lower(),arch)
+OS=get_os()
 
 def load_svg(path):
 	svg=SVGP.parse_file(path)
@@ -142,7 +151,7 @@ Written by %s.""" % (conf["version"],COPYRIGHT_YEAR, COPYRIGHT_HOLDER, AUTHORS)
 
 class Updater():
 	def __init__(self,update_to:[0,1,2]=None):	#0→Stable,1→Prerelease,2→commit (in master branch),None→config option
-		self.meth=update_to	#meth→method (hehe)
+		self.meth=update_to	#meth→method
 		if self.meth==None:
 			try:
 				self.meth=conf["update_channel"]
@@ -159,47 +168,64 @@ class Updater():
 	def update(self)->bool:
 		"""Returns True if updated, False if already newest version."""
 		try:
-			__file__
-		except NameError:
-			print("Updating compiled scripts is not supported yet!")
-		else:
-			try:
-				tag=self.get_latest_tag()
-				if self.current!=tag:
-					data=self.get_commit(tag)
-					fpath=os.path.join(curpath,".update_rtris.zip")
-					with open(fpath,"wb+") as f:
-						f.write(data)
-					with zipfile.ZipFile(fpath,"r") as zipf:
-						zipf.extractall(curpath)
-					os.remove(fpath)
-					print("Updated from %s to %s."%(conf["version"],tag))
-					conf["version"]=tag
-					return True
-				else:
-					print("Already newest",("Release.","Prerelease.","commit.")[conf["update_channel"]])
-					return False
-			except URLError as e:
-				print("Couldn't update.",end=" ")
-				dprint("Reason:",e,end="")
-				print()
+			tag=self.get_latest_tag()
+			if self.current!=tag:
+				data=self.get_commit(tag)
+				fpath=os.path.join(curpath,".update_rtris.zip")
+				with open(fpath,"wb+") as f:
+					f.write(data)
+				with zipfile.ZipFile(fpath,"r") as zipf:
+					zipf.extractall(curpath)
+				os.remove(fpath)
+				print("Updated from %s to %s."%(conf["version"],tag))
+				conf["version"]=tag
+				return True
+			else:
+				print("Already newest",("Release.","Prerelease.","Commit.")[self.meth],"(%s)"%(tag))
 				return False
+		except URLError as e:
+			print("Couldn't update.",end="")
+			dprint(" Reason:",e,end="")
+			print()
+			return False
 	def get_zip(self,tag:str)->bytes:
-		return req.urlopen("https://github.com/RiedleroD/Rtris/archive/%s.zip"%tag).read()
+		if self.frozen:
+			return req.urlopen("https://github.com/RiedleroD/Rtris/releases/download/%s/rtris-%s-%s.zip"%(tag,tag,OS))
+		else:
+			return req.urlopen("https://github.com/RiedleroD/Rtris/archive/%s.zip"%tag).read()
 	def get_latest_tag(self)->str:
-		if self.meth==2:
-			info=json.load(req.urlopen("https://api.github.com/repos/RiedleroD/Rtris/commits/master"))
-			latest=info["commit"]["url"].split("/")[-1]
-		elif self.meth in (1,2):
-			info=json.load(req.urlopen("https://api.github.com/repos/RiedleroD/Rtris/releases"))
-			if self.meth==1:
-				info=info[0]
-			elif self.meth==0:
-				for release in info:
-					if not release["prerelease"]:
-						info=release
-						break
-			latest=info["tag_name"]
+		latest=self.current	#just to make sure the variable exists
+		if FROZEN:
+			if self.meth==2:
+				raise CommonCode(78,"Update method in frozen state cannot be 2 (canary)")
+			elif self.meth in (1,0):
+				info=json.load(req.urlopen("https://api.github.com/repos/RiedleroD/Rtris/releases"))
+				if self.meth==1:
+					info=info[0]
+				elif self.meth==0:
+					for release in info:
+						if not release["prerelease"]:
+							info=release
+							break
+				latest=info["tag_name"]
+			else:
+				raise CommonCode(78,"Update method has to be either 0 (release) or 1 (dev), but it's %s"%(self.meth))
+		else:
+			if self.meth==2:
+				info=json.load(req.urlopen("https://api.github.com/repos/RiedleroD/Rtris/commits/master"))
+				latest=info["commit"]["url"].split("/")[-1]
+			elif self.meth in (1,0):
+				info=json.load(req.urlopen("https://api.github.com/repos/RiedleroD/Rtris/releases"))
+				if self.meth==1:
+					info=info[0]
+				elif self.meth==0:
+					for release in info:
+						if not release["prerelease"]:
+							info=release
+							break
+				latest=info["tag_name"]
+			else:
+				raise CommonCode(78,"Update method has to be either 0 (release),1 (dev), or 2 (canary) but it's %s"%(self.meth))
 		return latest
 
 def opt_help(opt, args):
@@ -1422,7 +1448,7 @@ class MainGame():
 				self.buttons["update"].render()
 			elif self.buttons["uchannel"].pressed:
 				self.buttons["uchannel"].pressed=False
-				conf["update_channel"]=(conf["update_channel"]+1)%3
+				conf["update_channel"]=(conf["update_channel"]+1)%(3-FROZEN)
 				self.buttons["uchannel"].txt=uchans[conf["update_channel"]]
 				self.buttons["uchannel"].render()
 			elif self.buttons["sprites"].pressed:
