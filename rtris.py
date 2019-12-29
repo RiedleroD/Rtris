@@ -155,7 +155,7 @@ class Updater():
 			self.current=None
 			conf["version"]=None
 		if self.meth not in (0,1,2):
-			raise CommonCode("Update method can only be 0, 1 or 2, instead it is "+str(self.meth)+".")
+			raise CommonCode("Update method can only be 0, 1 or 2, instead it is %s."%(self.meth))
 	def update(self)->bool:
 		"""Returns True if updated, False if already newest version."""
 		try:
@@ -173,7 +173,7 @@ class Updater():
 					with zipfile.ZipFile(fpath,"r") as zipf:
 						zipf.extractall(curpath)
 					os.remove(fpath)
-					print("Updated from "+str(conf["version"])+" to "+tag+".")
+					print("Updated from %s to %s."%(conf["version"],tag))
 					conf["version"]=tag
 					return True
 				else:
@@ -304,7 +304,7 @@ if __name__=="__main__":
 		match=fullmatch(r"^-(-(?P<l>[^-].+)|(?P<s>[^-]))$",arg)
 		if match==None:
 			if arg.startswith("-") or arg.endswith("-"):
-				invalid+="\n  Invalid argument: "+arg
+				invalid+="\n  Invalid argument: %s"%(arg)
 			else:
 				continue
 		else:
@@ -561,7 +561,7 @@ class Block():
 				[[1,0],[1,1],[1,2],[2,1]]])
 			self.color=(127,0,127)
 		else:
-			raise ValueError("Invalid block type: "+str(typ))
+			raise ValueError("Invalid block type: %s"%(typ))
 		del self.x
 		del self.y
 		if type(rects)==list:
@@ -704,7 +704,7 @@ class Board():
 		elif lns_count==0:
 			pass
 		else:
-			raise ValueError("lns_count is "+str(lns_count)+", but it can only be 0-4")
+			raise ValueError("lns_count is %s, but it can only be 0-4"%(lns_count))
 		if deleted and self.mode==1:
 			self.checkbmode()
 	def checkbmode(self):
@@ -965,7 +965,7 @@ class Button():
 		elif posmeth[0]==-1:
 			self.rect[0]=x-self.surface.get_width()
 		else:
-			raise ValueError("Wrong position method (only -1,0,1 are allowed): "+str(posmeth))
+			raise ValueError("Wrong position method (only -1,0,1 are allowed): %s"%(posmeth))
 		if posmeth[1]==0:
 			self.rect[1]=y-self.surface.get_height()//2
 		elif posmeth[1]==1:
@@ -973,7 +973,7 @@ class Button():
 		elif posmeth[1]==-1:
 			self.rect[1]=y-self.surface.get_height()
 		else:
-			raise ValueError("Wrong position method (only -1,0,1 are allowed): "+str(posmeth))
+			raise ValueError("Wrong position method (only -1,0,1 are allowed): %s"%(posmeth))
 		self.rect=pygame.Rect(*self.rect,width,height)
 	def press(self):
 		self.pressed=True
@@ -1025,13 +1025,13 @@ class MainGame():
 			else:
 				score=self.board.calcscore()
 				lns=self.board.tetrisln*4+self.board.threeln*3+self.board.twoln*2+self.board.oneln
-				screen.blit(scorefont.render("Score: "+str(score),(255,255,255))[0],(11*BLOCK_SIZE,3*BLOCK_SIZE))
-				screen.blit(scorefont.render("Lines: "+str(lns),(255,255,255))[0],(11*BLOCK_SIZE,4*BLOCK_SIZE))
-				screen.blit(scorefont.render("Level: "+str(self.speed),(255,255,255))[0],(11*BLOCK_SIZE,5*BLOCK_SIZE))
-				screen.blit(scorefont.render("Tetris': "+str(self.board.tetrisln),(255,255,255))[0],(11*BLOCK_SIZE,6*BLOCK_SIZE))
-				screen.blit(scorefont.render("Triples: "+str(self.board.threeln),(255,255,255))[0],(11*BLOCK_SIZE,7*BLOCK_SIZE))
-				screen.blit(scorefont.render("Doubles: "+str(self.board.twoln),(255,255,255))[0],(11*BLOCK_SIZE,8*BLOCK_SIZE))
-				screen.blit(scorefont.render("Singles: "+str(self.board.oneln),(255,255,255))[0],(11*BLOCK_SIZE,9*BLOCK_SIZE))
+				screen.blit(scorefont.render("Score: %s"%(score),(255,255,255))[0],(11*BLOCK_SIZE,3*BLOCK_SIZE))
+				screen.blit(scorefont.render("Lines: %s"%(lns),(255,255,255))[0],(11*BLOCK_SIZE,4*BLOCK_SIZE))
+				screen.blit(scorefont.render("Level: %s"%(self.speed),(255,255,255))[0],(11*BLOCK_SIZE,5*BLOCK_SIZE))
+				screen.blit(scorefont.render("Tetris': %s"%(self.board.tetrisln),(255,255,255))[0],(11*BLOCK_SIZE,6*BLOCK_SIZE))
+				screen.blit(scorefont.render("Triples: %s"%(self.board.threeln),(255,255,255))[0],(11*BLOCK_SIZE,7*BLOCK_SIZE))
+				screen.blit(scorefont.render("Doubles: %s"%(self.board.twoln),(255,255,255))[0],(11*BLOCK_SIZE,8*BLOCK_SIZE))
+				screen.blit(scorefont.render("Singles: %s"%(self.board.oneln),(255,255,255))[0],(11*BLOCK_SIZE,9*BLOCK_SIZE))
 				if show_upcoming:
 					upcoming=Block(typ=self.board.upcoming[0],x=0,y=0)
 					for x,y in upcoming.rects[0]:
@@ -1191,18 +1191,18 @@ class MainGame():
 			elif self.buttons["start"].pressed:
 				return True
 			elif self.buttons["speed"].pressed:
-				self.buttons["speed"].txt="["+str(self.speed)+"]"
+				self.buttons["speed"].txt="[%s]"%(self.speed)
 				self.buttons["speed"].render()
 				self.draw()
 				for inpot in pygame_input(str(self.speed)):
-					self.buttons["speed"].txt="["+inpot+"]"
+					self.buttons["speed"].txt="[%s]"%(inpot)
 					self.buttons["speed"].render()
 					self.draw()
 				try:
 					self.speed=abs(int(self.buttons["speed"].txt[1:-1]))
 				except ValueError:
 					pass
-				self.buttons["speed"].txt="Speed: "+str(self.speed)
+				self.buttons["speed"].txt="Speed: %s"%(self.speed)
 				self.buttons["speed"].render()
 				self.buttons["speed"].pressed=False
 			elif self.buttons["mode"].pressed:
@@ -1275,7 +1275,7 @@ class MainGame():
 			fpstxt="Show FPS"
 		self.buttons["fullscreen"]=Button(x=RIGHT_SIDE,y=TOP_SIDE,txt=fulscrntxt,posmeth=(-1,1))
 		self.buttons["show_fps"]=Button(x=RIGHT_SIDE,y=self.buttons["fullscreen"].rect.bottom+10,txt=fpstxt,posmeth=(-1,1))
-		self.buttons["max_fps"]=Button(x=RIGHT_SIDE,y=self.buttons["show_fps"].rect.bottom+10,txt="FPS: "+str(conf["max_fps"]),posmeth=(-1,1))
+		self.buttons["max_fps"]=Button(x=RIGHT_SIDE,y=self.buttons["show_fps"].rect.bottom+10,txt="FPS: %s"%(conf["max_fps"]),posmeth=(-1,1))
 		if conf["update"]:
 			updtcolr=(0,255,0)
 		else:
@@ -1291,7 +1291,7 @@ class MainGame():
 			if self.checkbuttons() or self.buttons["back"].pressed:
 				break
 			if self.buttons["strgleft"].pressed:
-				self.buttons["strgleft"].txt="["+pygame.key.name(strg["left"])+"]"
+				self.buttons["strgleft"].txt="[%s]"%(pygame.key.name(strg["left"]))
 				self.buttons["strgleft"].render()
 				self.draw()
 				button=self.wait4buttonpress()
@@ -1301,7 +1301,7 @@ class MainGame():
 				self.buttons["strgleft"].txt="Left"
 				self.buttons["strgleft"].render()
 			elif self.buttons["strgright"].pressed:
-				self.buttons["strgright"].txt="["+pygame.key.name(strg["right"])+"]"
+				self.buttons["strgright"].txt="[%s]"%(pygame.key.name(strg["right"]))
 				self.buttons["strgright"].render()
 				self.draw()
 				button=self.wait4buttonpress()
@@ -1311,7 +1311,7 @@ class MainGame():
 				self.buttons["strgright"].txt="Right"
 				self.buttons["strgright"].render()
 			elif self.buttons["strgdrop"].pressed:
-				self.buttons["strgdrop"].txt="["+pygame.key.name(strg["drop"])+"]"
+				self.buttons["strgdrop"].txt="[%s]"%(pygame.key.name(strg["drop"]))
 				self.buttons["strgdrop"].render()
 				self.draw()
 				button=self.wait4buttonpress()
@@ -1321,7 +1321,7 @@ class MainGame():
 				self.buttons["strgdrop"].txt="Drop"
 				self.buttons["strgdrop"].render()
 			elif self.buttons["strgidrop"].pressed:
-				self.buttons["strgidrop"].txt="["+pygame.key.name(strg["idrop"])+"]"
+				self.buttons["strgidrop"].txt="[%s]"%(pygame.key.name(strg["idrop"]))
 				self.buttons["strgidrop"].render()
 				self.draw()
 				button=self.wait4buttonpress()
@@ -1331,7 +1331,7 @@ class MainGame():
 				self.buttons["strgidrop"].txt="Inst. Drop"
 				self.buttons["strgidrop"].render()
 			elif self.buttons["strgrot"].pressed:
-				self.buttons["strgrot"].txt="["+pygame.key.name(strg["rot"])+"]"
+				self.buttons["strgrot"].txt="[%s]"%(pygame.key.name(strg["rot"]))
 				self.buttons["strgrot"].render()
 				self.draw()
 				button=self.wait4buttonpress()
@@ -1341,7 +1341,7 @@ class MainGame():
 				self.buttons["strgrot"].txt="Rotate \u21c0"
 				self.buttons["strgrot"].render()
 			elif self.buttons["strgrot1"].pressed:
-				self.buttons["strgrot1"].txt="["+pygame.key.name(strg["rot1"])+"]"
+				self.buttons["strgrot1"].txt="[%s]"%(pygame.key.name(strg["rot1"]))
 				self.buttons["strgrot1"].render()
 				self.draw()
 				button=self.wait4buttonpress()
@@ -1351,7 +1351,7 @@ class MainGame():
 				self.buttons["strgrot1"].txt="Rotate \u21bc"
 				self.buttons["strgrot1"].render()
 			elif self.buttons["strgexit"].pressed:
-				self.buttons["strgexit"].txt="["+pygame.key.name(strg["exit"])+"]"
+				self.buttons["strgexit"].txt="[%s]"%(pygame.key.name(strg["exit"]))
 				self.buttons["strgexit"].render()
 				self.draw()
 				button=self.wait4buttonpress()
@@ -1361,7 +1361,7 @@ class MainGame():
 				self.buttons["strgexit"].txt="Exit/Back"
 				self.buttons["strgexit"].render()
 			elif self.buttons["strgpause"].pressed:
-				self.buttons["strgpause"].txt="["+pygame.key.name(strg["pause"])+"]"
+				self.buttons["strgpause"].txt="[%s]"%(pygame.key.name(strg["pause"]))
 				self.buttons["strgpause"].render()
 				self.draw()
 				button=self.wait4buttonpress()
@@ -1371,7 +1371,7 @@ class MainGame():
 				self.buttons["strgpause"].txt="Pause"
 				self.buttons["strgpause"].render()
 			elif self.buttons["strgsshot"].pressed:
-				self.buttons["strgsshot"].txt="["+pygame.key.name(strg["screenshot"])+"]"
+				self.buttons["strgsshot"].txt="[%s]"%(pygame.key.name(strg["screenshot"]))
 				self.buttons["strgsshot"].render()
 				self.draw()
 				button=self.wait4buttonpress()
@@ -1398,18 +1398,18 @@ class MainGame():
 					self.buttons["show_fps"].txt="Hide FPS"
 				self.buttons["show_fps"].render()
 			elif self.buttons["max_fps"].pressed:
-				self.buttons["max_fps"].txt="["+str(conf["max_fps"])+"]"
+				self.buttons["max_fps"].txt="[%s]"%(conf["max_fps"])
 				self.buttons["max_fps"].render()
 				self.draw()
 				for inpot in pygame_input(str(conf["max_fps"])):
-					self.buttons["max_fps"].txt="["+inpot+"]"
+					self.buttons["max_fps"].txt="[%s]"%(inpot)
 					self.buttons["max_fps"].render()
 					self.draw()
 				try:
 					conf["max_fps"]=abs(int(self.buttons["max_fps"].txt[1:-1]))
 				except ValueError:
 					pass
-				self.buttons["max_fps"].txt="FPS: "+str(conf["max_fps"])
+				self.buttons["max_fps"].txt="FPS: %s"%(conf["max_fps"])
 				self.buttons["max_fps"].render()
 				self.buttons["max_fps"].pressed=False
 			elif self.buttons["update"].pressed:
