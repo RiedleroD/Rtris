@@ -15,16 +15,14 @@ from svg import Parser as SVGP, Rasterizer as SVGR
 import platform
 settb(False)
 
+FROZEN=getattr(sys,"frozen",False)	#see if script is frozen (aka compiled)
+if FROZEN:
+	__file__=sys.executable
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
-try:
-	curpath=os.path.abspath(os.path.dirname(__file__))
-except NameError:
-	import inspect
-	curpath=os.path.abspath(os.path.dirname(inspect.getframeinfo(inspect.currentframe()).filename))
+curpath=os.path.abspath(os.path.dirname(__file__))
 datapath=os.path.join(curpath,"gamedata")
 metapath=os.path.join(datapath,".metadata")
-FROZEN=getattr(sys,"frozen",False)	#see if script is frozen (aka compiled)
 
 def get_git_head():
 	headfile=os.path.join(curpath,".git/HEAD")
@@ -1478,18 +1476,15 @@ class MainGame():
 if __name__=="__main__":
 	try:
 		dprint("Configurations:\n  strg:\n    left:%s\n    right:%s\n    drop:%s\n    idrop:%s\n    rot:%s\n    rot1:%s\n    exit:%s\n    pause:%s\n  fullscreen:%s\n  show_fps:%s\n  max_fps:%s\n  version:%s\n  update_channel:%s\n  update:%s\nMetadata:\n  texturepack:%s\n  bimgsize:%s"%(conf["strg"]["left"],conf["strg"]["right"],conf["strg"]["drop"],conf["strg"]["idrop"],conf["strg"]["rot"],conf["strg"]["rot1"],conf["strg"]["exit"],conf["strg"]["pause"],conf["fullscreen"],conf["show_fps"],	conf["max_fps"],conf["version"],conf["update_channel"],conf["update"],meta["texturepack"],meta["bimgsize"]))
-		try:
-			if os.path.exists(os.path.join(os.path.dirname(__file__),".git/")):
-				dprint("Skipped updating because of detected git repository")
-				update=False
-			if update:
-				updater=Updater()
-				if updater.update():
-					with open(confpath,"w+") as conffile:
-						json.dump(conf,conffile,ensure_ascii=False)
-					os.execv(__file__,argv)
-		except NameError:
-			dprint("Skipped updating because this is compiled.")
+		if os.path.exists(os.path.join(os.path.dirname(__file__),".git/")):
+			dprint("Skipped updating because of detected git repository")
+			update=False
+		if update:
+			updater=Updater()
+			if updater.update():
+				with open(confpath,"w+") as conffile:
+					json.dump(conf,conffile,ensure_ascii=False)
+				os.execv(__file__,argv)
 		game=MainGame()
 		game.menu()
 	finally:
