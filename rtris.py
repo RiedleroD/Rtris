@@ -168,7 +168,7 @@ class Updater():
 		try:
 			tag=self.get_latest_tag()
 			if self.current!=tag:
-				data=self.get_commit(tag)
+				data=self.get_zip(tag)
 				fpath=os.path.join(curpath,".update_rtris.zip")
 				with open(fpath,"wb+") as f:
 					f.write(data)
