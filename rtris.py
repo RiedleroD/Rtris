@@ -435,6 +435,7 @@ pygame.display.set_caption("RTris")
 
 scorefont=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",30)
 scorefont25=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",25)
+versfont=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",15)
 def load_sprites():
 	global spritepath,SPRITES,TEMPSAVE,meta
 	SPRITES={"blocks":{}}
@@ -1066,7 +1067,8 @@ class MainGame():
 	def __init__(self):
 		self.screen=screen
 		self.buttons={}
-	def draw(self,curtain:list=[],headsup:str="",show_upcoming:bool=True):
+		self.verstext=versfont.render(conf["version"],(255,255,255))[0]
+	def draw(self,curtain:list=[],headsup:str="",show_upcoming:bool=False,show_version:bool=False):
 		self.screen.fill((0,0,0))
 		if self.running:
 			if self.board.paused:
@@ -1136,6 +1138,8 @@ class MainGame():
 		else:
 			for name,button in self.buttons.items():
 				self.screen.blit(button.surface,button.rect)
+		if show_version:
+			self.screen.blit(self.verstext,(RIGHT_SIDE-self.verstext.get_width(),BOTTOM_SIDE-self.verstext.get_height()))
 		pygame.display.flip()
 	def end(self,state:int=0):
 		for line in reversed(range(20)):
@@ -1194,7 +1198,7 @@ class MainGame():
 					if event.key==strg["drop"]:
 						K_DROP=False
 			self.board.cycle(self._speed)
-			self.draw()
+			self.draw(show_upcoming=True)
 			if self.board.ended:
 				if self.mode==1 and self.board.get_cleared()>=self.blines:
 					state=1
@@ -1209,7 +1213,7 @@ class MainGame():
 			self.buttons["settings"]=Button(x=CENTERx,y=CENTERy,txt="Settings")
 			self.buttons["start"]=Button(x=CENTERx,y=self.buttons["settings"].rect.top-10,txt="Start",posmeth=(0,-1))
 			self.buttons["quit"]=Button(x=CENTERx,y=self.buttons["settings"].rect.bottom+10,txt="Quit",posmeth=(0,1))
-			self.draw()
+			self.draw(show_version=True)
 			if self.checkbuttons():
 				break
 			if self.buttons["start"].pressed:
@@ -1235,7 +1239,7 @@ class MainGame():
 			self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Objective: %s"%self.blines,posmeth=(1,1),font=scorefont25)
 			self.buttons["bint"]=Button(x=self.buttons["blines"].rect.right+10,y=CENTERy+5,txt="Intensity: %s"%self.bheight,posmeth=(1,1),font=scorefont25)
 		while True:
-			self.draw()
+			self.draw(show_version=True)
 			if self.checkbuttons() or self.buttons["back"].pressed:
 				return False
 			elif self.buttons["start"].pressed:
@@ -1243,11 +1247,11 @@ class MainGame():
 			elif self.buttons["speed"].pressed:
 				self.buttons["speed"].txt="[%s]"%(self.speed)
 				self.buttons["speed"].render()
-				self.draw()
+				self.draw(show_version=True)
 				for inpot in pygame_input(str(self.speed)):
 					self.buttons["speed"].txt="[%s]"%(inpot)
 					self.buttons["speed"].render()
-					self.draw()
+					self.draw(show_version=True)
 				try:
 					self.speed=abs(int(self.buttons["speed"].txt[1:-1]))
 				except ValueError:
@@ -1279,11 +1283,11 @@ class MainGame():
 				self.buttons["blines"].pressed=False
 				self.buttons["blines"].txt="[%s]"%self.blines
 				self.buttons["blines"].render()
-				self.draw()
+				self.draw(show_version=True)
 				for inpot in pygame_input(str(self.blines)):
 					self.buttons["blines"].txt="[%s]"%inpot
 					self.buttons["blines"].render()
-					self.draw()
+					self.draw(show_version=True)
 				try:
 					self.blines=(lambda blines:blines if blines>0 else self.blines)(abs(int(self.buttons["blines"].txt[1:-1])))
 				except ValueError:
@@ -1337,13 +1341,13 @@ class MainGame():
 		del updtcolr
 		del fulscrntxt
 		while True:
-			self.draw()
+			self.draw(show_version=True)
 			if self.checkbuttons() or self.buttons["back"].pressed:
 				break
 			if self.buttons["strgleft"].pressed:
 				self.buttons["strgleft"].txt="[%s]"%(pygame.key.name(strg["left"]))
 				self.buttons["strgleft"].render()
-				self.draw()
+				self.draw(show_version=True)
 				button=self.wait4buttonpress()
 				if button!=None:
 					strg["left"]=button.key
@@ -1353,7 +1357,7 @@ class MainGame():
 			elif self.buttons["strgright"].pressed:
 				self.buttons["strgright"].txt="[%s]"%(pygame.key.name(strg["right"]))
 				self.buttons["strgright"].render()
-				self.draw()
+				self.draw(show_version=True)
 				button=self.wait4buttonpress()
 				if button!=None:
 					strg["right"]=button.key
@@ -1363,7 +1367,7 @@ class MainGame():
 			elif self.buttons["strgdrop"].pressed:
 				self.buttons["strgdrop"].txt="[%s]"%(pygame.key.name(strg["drop"]))
 				self.buttons["strgdrop"].render()
-				self.draw()
+				self.draw(show_version=True)
 				button=self.wait4buttonpress()
 				if button!=None:
 					strg["drop"]=button.key
@@ -1373,7 +1377,7 @@ class MainGame():
 			elif self.buttons["strgidrop"].pressed:
 				self.buttons["strgidrop"].txt="[%s]"%(pygame.key.name(strg["idrop"]))
 				self.buttons["strgidrop"].render()
-				self.draw()
+				self.draw(show_version=True)
 				button=self.wait4buttonpress()
 				if button!=None:
 					strg["idrop"]=button.key
@@ -1383,7 +1387,7 @@ class MainGame():
 			elif self.buttons["strgrot"].pressed:
 				self.buttons["strgrot"].txt="[%s]"%(pygame.key.name(strg["rot"]))
 				self.buttons["strgrot"].render()
-				self.draw()
+				self.draw(show_version=True)
 				button=self.wait4buttonpress()
 				if button!=None:
 					strg["rot"]=button.key
@@ -1393,7 +1397,7 @@ class MainGame():
 			elif self.buttons["strgrot1"].pressed:
 				self.buttons["strgrot1"].txt="[%s]"%(pygame.key.name(strg["rot1"]))
 				self.buttons["strgrot1"].render()
-				self.draw()
+				self.draw(show_version=True)
 				button=self.wait4buttonpress()
 				if button!=None:
 					strg["rot1"]=button.key
@@ -1403,7 +1407,7 @@ class MainGame():
 			elif self.buttons["strgexit"].pressed:
 				self.buttons["strgexit"].txt="[%s]"%(pygame.key.name(strg["exit"]))
 				self.buttons["strgexit"].render()
-				self.draw()
+				self.draw(show_version=True)
 				button=self.wait4buttonpress()
 				if button!=None:
 					strg["exit"]=button.key
@@ -1413,7 +1417,7 @@ class MainGame():
 			elif self.buttons["strgpause"].pressed:
 				self.buttons["strgpause"].txt="[%s]"%(pygame.key.name(strg["pause"]))
 				self.buttons["strgpause"].render()
-				self.draw()
+				self.draw(show_version=True)
 				button=self.wait4buttonpress()
 				if button!=None:
 					strg["pause"]=button.key
@@ -1423,7 +1427,7 @@ class MainGame():
 			elif self.buttons["strgsshot"].pressed:
 				self.buttons["strgsshot"].txt="[%s]"%(pygame.key.name(strg["screenshot"]))
 				self.buttons["strgsshot"].render()
-				self.draw()
+				self.draw(show_version=True)
 				button=self.wait4buttonpress()
 				if button!=None:
 					strg["screenshot"]=button.key
@@ -1450,11 +1454,11 @@ class MainGame():
 			elif self.buttons["max_fps"].pressed:
 				self.buttons["max_fps"].txt="[%s]"%(conf["max_fps"])
 				self.buttons["max_fps"].render()
-				self.draw()
+				self.draw(show_version=True)
 				for inpot in pygame_input(str(conf["max_fps"])):
 					self.buttons["max_fps"].txt="[%s]"%(inpot)
 					self.buttons["max_fps"].render()
-					self.draw()
+					self.draw(show_version=True)
 				try:
 					conf["max_fps"]=abs(int(self.buttons["max_fps"].txt[1:-1]))
 				except ValueError:
