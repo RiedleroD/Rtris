@@ -13,11 +13,13 @@ import zipfile
 import pgshot
 from svg import Parser as SVGP, Rasterizer as SVGR
 import platform
+import subprocess as subp
 settb(False)
 
 FROZEN=getattr(sys,"frozen",False)	#see if script is frozen (aka compiled)
 if FROZEN:
 	__file__=sys.executable
+	exit=sys.exit
 K_DROP=False
 confpath=os.path.abspath(os.path.expanduser("~/.rtrisconf"))
 curpath=os.path.abspath(os.path.dirname(__file__))
@@ -168,13 +170,34 @@ class Updater():
 		try:
 			tag=self.get_latest_tag()
 			if self.current!=tag:
-				data=self.get_zip(tag)
-				fpath=os.path.join(curpath,".update_rtris.zip")
+				dprint("Downloading update...",end="\r",flush=True)
+				data,ext=self.get_zip(tag)
+				fpath=os.path.join(curpath,".update_rtris%s"%ext)
 				with open(fpath,"wb+") as f:
 					f.write(data)
-				with zipfile.ZipFile(fpath,"r") as zipf:
-					zipf.extractall(curpath)
+				dprint("Extracting archive...",end="\r",flush=True)
+				if ext==".zip":
+					with zipfile.ZipFile(fpath,"r") as zipf:
+						zipf.extractall(curpath)
+				elif ext==".7z":
+					subp.Popen(["/usr/bin/7z","x",fpath,"-o%s"%curpath,"-y"],stdout=subp.PIPE,stderr=subp.PIPE).wait()
 				os.remove(fpath)
+				dprint("Moving files...      ",end="\r",flush=True)
+				inconvenience=os.path.join(curpath,"rtris-%s-%s"%(tag,OS))	#because some archives have an extra folder in them thats named after the rtris version
+				if os.path.exists(inconvenience):
+					for fname in os.listdir(inconvenience):
+						dst=os.path.join(curpath,fname)
+						src=os.path.join(inconvenience,fname)
+						if os.path.isdir(dst):
+							for root,dnames,fnames in os.walk(dst,topdown=False):
+								for fname in fnames:
+									os.remove(os.path.join(root,fname))
+								for dname in dnames:
+									os.rmdir(os.path.join(root,dname))
+						elif os.path.isfile(dst):
+							os.remove(dst)
+						os.rename(src,dst)
+					os.rmdir(inconvenience)
 				print("Updated from %s to %s."%(conf["version"],tag))
 				conf["version"]=tag
 				return True
@@ -186,11 +209,14 @@ class Updater():
 			dprint(" Reason:",e,end="")
 			print()
 			return False
-	def get_zip(self,tag:str)->bytes:
-		if self.frozen:
-			return req.urlopen("https://github.com/RiedleroD/Rtris/releases/download/%s/rtris-%s-%s.zip"%(tag,tag,OS))
+	def get_zip(self,tag:str)->(bytes,str):
+		if FROZEN:
+			try:
+				return (req.urlopen("https://github.com/RiedleroD/Rtris/releases/download/%s/rtris-%s-%s.zip"%(tag,tag,OS)).read(),".zip")
+			except URLError:
+				return (req.urlopen("https://github.com/RiedleroD/Rtris/releases/download/%s/rtris-%s-%s.7z"%(tag,tag,OS)).read(),".7z")
 		else:
-			return req.urlopen("https://github.com/RiedleroD/Rtris/archive/%s.zip"%tag).read()
+			return (req.urlopen("https://github.com/RiedleroD/Rtris/archive/%s.zip"%tag).read(),".zip")
 	def get_latest_tag(self)->str:
 		latest=self.current	#just to make sure the variable exists
 		if FROZEN:
