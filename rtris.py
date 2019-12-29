@@ -1239,7 +1239,7 @@ class MainGame():
 			self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Objective: %s"%self.blines,posmeth=(1,1),font=scorefont25)
 			self.buttons["bint"]=Button(x=self.buttons["blines"].rect.right+10,y=CENTERy+5,txt="Intensity: %s"%self.bheight,posmeth=(1,1),font=scorefont25)
 		while True:
-			self.draw(show_version=True)
+			self.draw()
 			if self.checkbuttons() or self.buttons["back"].pressed:
 				return False
 			elif self.buttons["start"].pressed:
@@ -1247,11 +1247,11 @@ class MainGame():
 			elif self.buttons["speed"].pressed:
 				self.buttons["speed"].txt="[%s]"%(self.speed)
 				self.buttons["speed"].render()
-				self.draw(show_version=True)
+				self.draw()
 				for inpot in pygame_input(str(self.speed)):
 					self.buttons["speed"].txt="[%s]"%(inpot)
 					self.buttons["speed"].render()
-					self.draw(show_version=True)
+					self.draw()
 				try:
 					self.speed=abs(int(self.buttons["speed"].txt[1:-1]))
 				except ValueError:
@@ -1283,11 +1283,11 @@ class MainGame():
 				self.buttons["blines"].pressed=False
 				self.buttons["blines"].txt="[%s]"%self.blines
 				self.buttons["blines"].render()
-				self.draw(show_version=True)
+				self.draw()
 				for inpot in pygame_input(str(self.blines)):
 					self.buttons["blines"].txt="[%s]"%inpot
 					self.buttons["blines"].render()
-					self.draw(show_version=True)
+					self.draw()
 				try:
 					self.blines=(lambda blines:blines if blines>0 else self.blines)(abs(int(self.buttons["blines"].txt[1:-1])))
 				except ValueError:
