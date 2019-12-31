@@ -379,6 +379,7 @@ if __name__=="__main__":
 
 pygame.init()
 pygame.freetype.init()
+pygame.mixer.init()
 #I'm not particularly proud of this section...
 try:
 	from ctypes import windll	#windows specific
@@ -452,10 +453,13 @@ def load_sprites():
 		for root,dirs,files in os.walk(spritepath,topdown=False):
 			for fname in files:
 				name,ext=os.path.splitext(fname)
+				f=os.path.join(root,fname)
 				if ext.lower()==".png":
-					SPRITES[name]=pygame.image.load(os.path.join(root,fname))
+					SPRITES[name]=pygame.image.load(f)
+					sprtpaths.append(f.replace(curpath,"."))
 				elif ext.lower()==".svg":
-					SPRITES[name]=load_svg(os.path.join(root,fname))
+					SPRITES[name]=load_svg(f)
+					sprtpaths.append(f.replace(curpath,"."))
 				if name.startswith("block_") and bimg==None:
 					bimg=SPRITES[name].get_width()
 		if len(sprtpaths)>0:
@@ -465,6 +469,49 @@ def load_sprites():
 	if bimg!=None:
 		meta["bimgsize"]=bimg
 load_sprites()
+def load_audio():
+	global audiopath,AUDIO,meta
+	AUDIO={}
+	if not meta["audiopack"]==None:
+		audiopath=os.path.join(datapath,"audio",str(meta["audiopack"]))
+		amd=os.path.join(audiopath,".metadata")
+		if os.path.exists(amd):
+			with open(amd,"r") as metafile:
+				meta.update(json.load(metafile))
+		del amd
+		audpaths=[]
+		for root,dirs,files in os.walk(audiopath,topdown=False):
+			for fname in files:
+				name,ext=os.path.splitext(fname)
+				if ext.lower() in (".wav",".ogg"):
+					f=os.path.join(root,fname)
+					AUDIO[name]=pygame.mixer.Sound(f)
+					audpaths.append(f.replace(curpath,"."))
+		if len(audpaths)>0:
+			dprint("Found Sounds:",*audpaths,sep="\n  ")
+	else:
+		audiopath=None
+load_audio()
+
+def aplay(name:str,loops:int=0,maxtime:int=0,fade_ms:int=0)->bool:
+	try:
+		AUDIO[name].play(loops,maxtime,fade_ms)
+	except Exception as e:
+		dprint("Got %s while playing audio"%(e))
+		return False
+	else:
+		dprint("Started audio '%s'"%(name))
+		return True
+
+def astop(name:str)->bool:
+	try:
+		AUDIO[name].stop()
+	except Exception as e:
+		dprint("Got %s while stopping audio"%(e))
+		return False
+	else:
+		dprint("Stopped audio '%s'"%(name))
+		return True
 
 def pygame_input(txt:str="")->str:
 	char=""
@@ -1068,6 +1115,7 @@ class MainGame():
 		self.screen=screen
 		self.buttons={}
 		self.verstext=versfont.render(conf["version"],(255,255,255))[0]
+		aplay("menu",loops=-1)
 	def draw(self,curtain:list=[],headsup:str="",show_upcoming:bool=False,show_version:bool=False):
 		self.screen.fill((0,0,0))
 		if self.running:
@@ -1156,6 +1204,7 @@ class MainGame():
 		self._speed=800
 		for x in range(origspeed):
 			self._speed/=self.spdslope
+		astop("menu")
 		while self.running:
 			if not self.board.paused:
 				self.cycle+=self.board.clock.get_time()
@@ -1207,6 +1256,7 @@ class MainGame():
 				self.end(state)
 			self.board.clock.tick(conf["max_fps"])
 		self.speed=0
+		aplay("menu")
 	def menu(self):
 		while True:
 			self.buttons={}
@@ -1518,6 +1568,7 @@ if __name__=="__main__":
 		game=MainGame()
 		game.menu()
 	finally:
+		astop("menu")
 		with open(confpath,"w+") as conffile:
 			json.dump(conf,conffile,ensure_ascii=False)
 		with open(metapath,"w+") as metafile:
