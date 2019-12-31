@@ -1225,6 +1225,7 @@ class MainGame():
 					elif event.key==strg["drop"]:
 						K_DROP=True
 					elif event.key==strg["idrop"]:
+						aplay("idrop")
 						block=self.board.get_alive()
 						if block!=None:
 							self.board.counter=1
