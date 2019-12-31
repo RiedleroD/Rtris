@@ -76,7 +76,7 @@ defaults={
 defmeta={
 	"bimgsize":12,
 	"texturepack":"default",
-	"smoothscale":False}
+	"audiopack":"default"}
 
 if not os.path.exists(metapath):
 	meta=defmeta
@@ -494,6 +494,8 @@ def load_audio():
 load_audio()
 
 def aplay(name:str,loops:int=0,maxtime:int=0,fade_ms:int=0)->bool:
+	if meta["audiopack"]==None:
+		return False
 	try:
 		AUDIO[name].play(loops,maxtime,fade_ms)
 	except Exception as e:
@@ -1354,6 +1356,9 @@ class MainGame():
 		spritepath=os.path.join(datapath,"sprites")
 		spritepaths=[path for path in os.listdir(spritepath) if os.path.isdir(os.path.join(spritepath,path))]
 		spritepaths.append(None)
+		audiopath=os.path.join(datapath,"audio")
+		audiopaths=[path for path in os.listdir(audiopath) if os.path.isdir(os.path.join(audiopath,path))]
+		audiopaths.append(None)
 		self.buttons={
 			"back":Button(x=CENTERx,y=BOTTOM_SIDE,txt="Back",posmeth=(0,-1)),
 			"strgleft":Button(x=LEFT_SIDE,y=TOP_SIDE,txt="Left",posmeth=(1,1))}
@@ -1388,8 +1393,11 @@ class MainGame():
 		uchans=["Stable","Devel","Canary"]
 		self.buttons["uchannel"]=Button(x=RIGHT_SIDE,y=self.buttons["update"].rect.bottom+10,txt=uchans[conf["update_channel"]],posmeth=(-1,1))
 		self.buttons["sprites"]=Button(x=RIGHT_SIDE,y=self.buttons["uchannel"].rect.bottom+10,txt="Sprites:%s"%(meta["texturepack"]),posmeth=(-1,1))
+		self.buttons["audio"]=Button(x=RIGHT_SIDE,y=self.buttons["sprites"].rect.bottom+10,txt="Audio:%s"%(meta["audiopack"]),posmeth=(-1,1))
 		del updtcolr
 		del fulscrntxt
+		del audiopath
+		del spritepath
 		while True:
 			self.draw(show_version=True)
 			if self.checkbuttons() or self.buttons["back"].pressed:
@@ -1533,6 +1541,13 @@ class MainGame():
 				self.buttons["sprites"].pressed=False
 				meta["texturepack"]=spritepaths[(spritepaths.index(meta["texturepack"])+1)%len(spritepaths)]
 				self.buttons["sprites"].txt="Sprites:%s"%meta["texturepack"]
+				load_sprites()
+				for button in self.buttons.values():
+					button.render()
+			elif self.buttons["audio"].pressed:
+				self.buttons["audio"].pressed=False
+				meta["audiopack"]=audiopaths[(audiopaths.index(meta["audiopack"])+1)%len(audiopaths)]
+				self.buttons["audio"].txt="Audio:%s"%meta["audiopack"]
 				load_sprites()
 				for button in self.buttons.values():
 					button.render()
