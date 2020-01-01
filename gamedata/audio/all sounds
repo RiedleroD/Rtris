@@ -3,6 +3,7 @@ So this is basically a reminder to let me remember what sounds are planned and s
 name			-	[File][Implement.]	-	Explanation when the sound gets played
 ————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 menu			-	[Draft][Finished]	-	background music in the menu
+gamemodeselect	-	[Nope][Nothing]		-	background music in the game mode select screen
 game			-	[Nope][Nothing]		-	background music in the game [multiple will possibly exist]
 idrop			-	[Draft][Finished]	-	when a block gets instadropped
 drop			-	[Nope][Nothing]		-	when a block gets normal-dropped
