@@ -1,0 +1,30 @@
+So this is basically a reminder to let me remember what sounds are planned and so on
+
+name			-	[File][Implement.]	-	Explanation when the sound gets played
+————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+menu			-	[Draft][Finished]	-	background music in the menu
+game			-	[Nope][Nothing]		-	background music in the game [multiple will possibly exist]
+idrop			-	[Draft][Finished]	-	when a block gets instadropped
+drop			-	[Nope][Nothing]		-	when a block gets normal-dropped
+single			-	[Nope][Nothing]		-	one line cleared
+double			-	[Nope][Nothing]		-	two lines cleared
+triple			-	[Nope][Nothing]		-	three lines cleared
+tetris			-	[Nope][Nothing]		-	four lines cleared
+button			-	[Nope][Nothing]		-	button gets pressed
+move			-	[Nope][Nothing]		-	block moves left or right
+rotate			-	[Nope][Nothing]		-	block rotates
+Agameover		-	[Nope][Nothing]		-	the game ends [mode A]
+Blose			-	[Nope][Nothing]		-	player loses [mode B]
+Bwin			-	[Nope][Nothing]		-	player wins [mode B]
+highscore		-	[Nope][Nothing]		-	player gets a highscore [either B or A]
+dropdown		-	[Nope][Nothing]		-	dropdown expands or contracts
+textbox			-	[Nope][Nothing]		-	textbox opens or closes
+LANwait			-	[Nope][Nothing]		-	waiting for game to start in LAN
+LANhost			-	[Nope][Nothing]		-	when 'host in LAN' gets pressed
+ONLINEwait		-	[Nope][Nothing]		-	waiting for game to start online
+ONLANfirst		-	[Nope][Nothing]		-	when you get 1st place either online or in LAN
+ONLANsecond		-	[Nope][Nothing]		-	when you get 2nd place either online or in LAN
+ONLANthird		-	[Nope][Nothing]		-	when you get 3rd place either online or in LAN
+ONLANlost		-	[Nope][Nothing]		-	when you get 4th place or worse either online or in LAN
+ONLANlast		-	[Nope][Nothing]		-	when you get last place (not 1st-3rd place) either online or in LAN
+————————————————————————————————————————————————————————————————————————————————————————————————————————————————
