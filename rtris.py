@@ -502,7 +502,7 @@ def aplay(name:str,loops:int=0,maxtime:int=0,fade_ms:int=0)->bool:
 		dprint("Got %s while playing audio"%(e))
 		return False
 	else:
-		dprint("Started audio '%s'"%(name))
+		dprint("Started audio '%s' with %s loops, %s maximum playtime and %s ms fadein"%(name,loops,maxtime,fade_ms))
 		return True
 
 def astop(name:str)->bool:
@@ -1259,7 +1259,7 @@ class MainGame():
 				self.end(state)
 			self.board.clock.tick(conf["max_fps"])
 		self.speed=0
-		aplay("menu")
+		aplay("menu",loops=-1)
 	def menu(self):
 		while True:
 			self.buttons={}
