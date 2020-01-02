@@ -1273,6 +1273,8 @@ class MainGame():
 				if self.selectmode():
 					self.board=Board(self.mode,self.bheight,self.blines,self.bint)
 					self.run()
+				else:
+					aplay("menu")
 			elif self.buttons["settings"].pressed:
 				self.buttons["settings"].pressed=False
 				self.settings()
