@@ -1206,7 +1206,6 @@ class MainGame():
 		self._speed=800
 		for x in range(origspeed):
 			self._speed/=self.spdslope
-		astop("menu")
 		while self.running:
 			if not self.board.paused:
 				self.cycle+=self.board.clock.get_time()
@@ -1291,6 +1290,7 @@ class MainGame():
 			self.buttons["height"]=Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height: %s"%self.bheight,posmeth=(1,1))
 			self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Objective: %s"%self.blines,posmeth=(1,1),font=scorefont25)
 			self.buttons["bint"]=Button(x=self.buttons["blines"].rect.right+10,y=CENTERy+5,txt="Intensity: %s"%self.bheight,posmeth=(1,1),font=scorefont25)
+		astop("menu")
 		aplay("gamemodeselect",loops=-1)
 		while True:
 			self.draw()
