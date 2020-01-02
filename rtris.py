@@ -1208,7 +1208,7 @@ class MainGame():
 		self._speed=800
 		for x in range(origspeed):
 			self._speed/=self.spdslope
-		achan=aplay("game",loops=-1,pick=True)
+		achan=aplay("game",pick=True)
 		while self.running:
 			if not self.board.paused:
 				self.cycle+=self.board.clock.get_time()
