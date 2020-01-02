@@ -1,11 +1,12 @@
-So this is basically a reminder to let me remember what sounds are planned and so on
+So this is basically a reminder to let me remember what sounds are planned and so on.
+If the file name ends with -*** that means that anything with the name, a dash and possibly any other characters after that count
 
 name			-	[File][Implement.]	-	Explanation when the sound gets played
 ————————————————————————————————————————————————————————————————————————————————————————————————————————————————
-menu			-	[Draft][Finished]	-	background music in the menu
+menu			-	[Draft][Fin]		-	background music in the menu
 gamemodeselect	-	[Nope][Nothing]		-	background music in the game mode select screen
-game			-	[Nope][Nothing]		-	background music in the game [multiple will possibly exist]
-idrop			-	[Draft][Finished]	-	when a block gets instadropped
+game-***		-	[Draft][Fin]		-	background music in the game
+idrop			-	[Fin][Fin]			-	when a block gets instadropped
 drop			-	[Nope][Nothing]		-	when a block gets normal-dropped
 single			-	[Nope][Nothing]		-	one line cleared
 double			-	[Nope][Nothing]		-	two lines cleared

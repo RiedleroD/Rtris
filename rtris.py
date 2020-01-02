@@ -499,7 +499,7 @@ def aplay(name:str,loops:int=0,maxtime:int=0,fade_ms:int=0,pick:bool=False)->pyg
 		return False
 	try:
 		if pick:
-			return random.choice([sound for n,sound in AUDIO.items() if n.startswith(name)]).play(loops,maxtime,fade_ms)
+			return random.choice([sound for n,sound in AUDIO.items() if n.startswith(name+"-")]).play(loops,maxtime,fade_ms)
 		else:
 			return AUDIO[name].play(loops,maxtime,fade_ms)
 	except Exception as e:
@@ -510,7 +510,7 @@ def astop(name:str,pick:bool=False):
 	try:
 		if pick:
 			for n,sound in AUDIO.items():
-				if n.startswith(name):
+				if n.startswith(name+"-"):
 					sound.stop()
 		else:
 			AUDIO[name].stop()
