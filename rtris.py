@@ -377,9 +377,10 @@ if __name__=="__main__":
 		opt[0][3](opt[1], opt[2])
 	dprint("Options:",*[arg[1]+":"+"&".join([str(value) for value in arg[2:]]) for arg in optqueue],sep="\n  ",flush=True)
 
+pygame.mixer.pre_init(22050,-16, 1, 512)
 pygame.init()
 pygame.freetype.init()
-pygame.mixer.init()
+pygame.mixer.init(44100,8,1,512)
 #I'm not particularly proud of this section...
 try:
 	from ctypes import windll	#windows specific
