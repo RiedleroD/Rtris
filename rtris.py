@@ -377,10 +377,10 @@ if __name__=="__main__":
 		opt[0][3](opt[1], opt[2])
 	dprint("Options:",*[arg[1]+":"+"&".join([str(value) for value in arg[2:]]) for arg in optqueue],sep="\n  ",flush=True)
 
-pygame.mixer.pre_init(22050,-16, 1, 512)
+pygame.mixer.pre_init(22050,-16, 2, 512)
 pygame.init()
 pygame.freetype.init()
-pygame.mixer.init(44100,8,1,512)
+pygame.mixer.init(22050,-16,2,512)
 #I'm not particularly proud of this section...
 try:
 	from ctypes import windll	#windows specific
@@ -494,27 +494,28 @@ def load_audio():
 		audiopath=None
 load_audio()
 
-def aplay(name:str,loops:int=0,maxtime:int=0,fade_ms:int=0)->bool:
+def aplay(name:str,loops:int=0,maxtime:int=0,fade_ms:int=0,pick:bool=False)->pygame.mixer.Channel:
 	if meta["audiopack"]==None:
 		return False
 	try:
-		AUDIO[name].play(loops,maxtime,fade_ms)
+		if pick:
+			return random.choice([sound for n,sound in AUDIO.items() if n.startswith(name)]).play(loops,maxtime,fade_ms)
+		else:
+			return AUDIO[name].play(loops,maxtime,fade_ms)
 	except Exception as e:
-		dprint("Got %s while playing audio"%(e))
-		return False
-	else:
-		dprint("Started audio '%s' with %s loops, %s maximum playtime and %s ms fadein"%(name,loops,maxtime,fade_ms))
-		return True
+		dprint("Got %s while playing audio '%s'"%(e,name))
+		return None
 
-def astop(name:str)->bool:
+def astop(name:str,pick:bool=False):
 	try:
-		AUDIO[name].stop()
+		if pick:
+			for n,sound in AUDIO.items():
+				if n.startswith(name):
+					sound.stop()
+		else:
+			AUDIO[name].stop()
 	except Exception as e:
-		dprint("Got %s while stopping audio"%(e))
-		return False
-	else:
-		dprint("Stopped audio '%s'"%(name))
-		return True
+		dprint("Got %s while stopping audio '%s'"%(e,name))
 
 def pygame_input(txt:str="")->str:
 	char=""
@@ -1207,6 +1208,7 @@ class MainGame():
 		self._speed=800
 		for x in range(origspeed):
 			self._speed/=self.spdslope
+		achan=aplay("game",loops=-1,pick=True)
 		while self.running:
 			if not self.board.paused:
 				self.cycle+=self.board.clock.get_time()
@@ -1258,7 +1260,10 @@ class MainGame():
 					state=0
 				self.end(state)
 			self.board.clock.tick(conf["max_fps"])
+			if not achan.get_busy():
+				achan=aplay("game",pick=True)
 		self.speed=0
+		astop("game",pick=True)
 		aplay("menu",loops=-1)
 	def menu(self):
 		while True:
