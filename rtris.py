@@ -1240,8 +1240,8 @@ class MainGame():
 						self.board.rotate_alive(1)
 					elif event.key==strg["rot1"]:
 						self.board.rotate_alive(-1)
-					elif event.key==strg["pause"] or event.key==pygame.K_PAUSE:+
-						if self.paused:
+					elif event.key==strg["pause"] or event.key==pygame.K_PAUSE:
+						if self.board.paused:
 							achan.unpause()
 						else:
 							achan.pause()
