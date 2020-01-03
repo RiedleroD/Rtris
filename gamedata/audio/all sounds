@@ -15,9 +15,9 @@ tetris			-	[Nope][Fin]			-	four lines cleared
 button			-	[Nope][Draft]		-	button gets pressed
 move			-	[Nope][Fin]			-	block moves left or right
 rotate			-	[Nope][Fin]			-	block rotates
-Agameover		-	[Nope][Nothing]		-	the game ends [mode A]
-Blose			-	[Nope][Nothing]		-	player loses [mode B]
-Bwin			-	[Nope][Nothing]		-	player wins [mode B]
+Agameover		-	[Nope][Fin]			-	the game ends [mode A]
+Blose			-	[Nope][Fin]			-	player loses [mode B]
+Bwin			-	[Nope][Fin]			-	player wins [mode B]
 highscore		-	[Nope][Nothing]		-	player gets a highscore [either B or A]
 dropdown		-	[Nope][Nothing]		-	dropdown expands or contracts
 textbox			-	[Nope][Nothing]		-	textbox opens or closes

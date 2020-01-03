@@ -1206,6 +1206,12 @@ class MainGame():
 			self.screen.blit(self.verstext,(RIGHT_SIDE-self.verstext.get_width(),BOTTOM_SIDE-self.verstext.get_height()))
 		pygame.display.flip()
 	def end(self,state:int=0):
+		if self.mode==0:
+			aplay("Agameover")
+		elif state==0:
+			aplay("Blose")
+		else:
+			aplay("Bwin")
 		for line in reversed(range(20)):
 			self.draw(curtain=[l for l in range(line,20)],headsup=("Game Over","You Win")[state],show_upcoming=False)
 			self.board.clock.tick(30)
