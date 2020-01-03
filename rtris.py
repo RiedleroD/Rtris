@@ -606,6 +606,7 @@ class Block():
 		self.rotation=0
 		self._rotation=0
 		self.alive=alive
+		self.idropped=False
 		if typ==0:
 			if not (type(rects)==list and len(rects)==4):
 				self.rects=self.rectmatrix([
@@ -920,6 +921,10 @@ class Board():
 					if self.check_pos([pos[0],pos[1]]) in (-1,-2):
 						block.move(0,-1)
 						block.die()
+						if block.idropped:
+							aplay("idrop")
+						else:
+							aplay("drop")
 						k=True
 						self.dropped+=1
 						break
@@ -1227,9 +1232,9 @@ class MainGame():
 					elif event.key==strg["drop"]:
 						K_DROP=True
 					elif event.key==strg["idrop"]:
-						aplay("idrop")
 						block=self.board.get_alive()
 						if block!=None:
+							block.idropped=True
 							self.board.counter=1
 							self.board.movecounter=1
 							while block.alive:
