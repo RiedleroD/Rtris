@@ -496,7 +496,7 @@ load_audio()
 
 def aplay(name:str,loops:int=0,maxtime:int=0,fade_ms:int=0,pick:bool=False)->pygame.mixer.Channel:
 	if meta["audiopack"]==None:
-		return False
+		return None
 	try:
 		if pick:
 			return random.choice([sound for n,sound in AUDIO.items() if n.startswith(name+"-")]).play(loops,maxtime,fade_ms)
@@ -1240,7 +1240,11 @@ class MainGame():
 						self.board.rotate_alive(1)
 					elif event.key==strg["rot1"]:
 						self.board.rotate_alive(-1)
-					elif event.key==strg["pause"] or event.key==pygame.K_PAUSE:
+					elif event.key==strg["pause"] or event.key==pygame.K_PAUSE:+
+						if self.paused:
+							achan.unpause()
+						else:
+							achan.pause()
 						self.board.pause()
 					elif event.key==strg["screenshot"]:
 						succ,fp=pgshot.dumppg(self.screen,os.path.join(curpath,"screenshots"))
@@ -1254,6 +1258,7 @@ class MainGame():
 			self.board.cycle(self._speed)
 			self.draw(show_upcoming=True)
 			if self.board.ended:
+				astop("game",pick=True)
 				if self.mode==1 and self.board.get_cleared()>=self.blines:
 					state=1
 				else:
@@ -1264,7 +1269,6 @@ class MainGame():
 				achan=aplay("game",pick=True)
 		self.speed=0
 		astop("game",pick=True)
-		aplay("menu",loops=-1)
 	def menu(self):
 		while True:
 			self.buttons={}
@@ -1279,8 +1283,7 @@ class MainGame():
 				if self.selectmode():
 					self.board=Board(self.mode,self.bheight,self.blines,self.bint)
 					self.run()
-				else:
-					aplay("menu")
+				aplay("menu",loops=-1)
 			elif self.buttons["settings"].pressed:
 				self.buttons["settings"].pressed=False
 				self.settings()
