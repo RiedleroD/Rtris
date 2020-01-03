@@ -503,7 +503,7 @@ def aplay(name:str,loops:int=0,maxtime:int=0,fade_ms:int=0,pick:bool=False)->pyg
 		else:
 			return AUDIO[name].play(loops,maxtime,fade_ms)
 	except Exception as e:
-		dprint("Got %s while playing audio '%s'"%(e,name))
+		dprint("Got %s while playing audio '%s'"%(repr(e),name))
 		return None
 
 def astop(name:str,pick:bool=False):
@@ -515,7 +515,7 @@ def astop(name:str,pick:bool=False):
 		else:
 			AUDIO[name].stop()
 	except Exception as e:
-		dprint("Got %s while stopping audio '%s'"%(e,name))
+		dprint("Got %s while stopping audio '%s'"%(repr(e),name))
 
 def pygame_input(txt:str="")->str:
 	char=""
@@ -704,6 +704,7 @@ class Block():
 				return False
 		return True
 	def move(self,x:int,y:int):
+		aplay("move")
 		for j in range(len(self.rects)):
 			for i in range(len(self.rects[j])):
 				self.rects[j][i][0]+=x
@@ -711,12 +712,17 @@ class Block():
 	def move_oop(self,x:int,y:int,rects:list=None):
 		return [[[i[0]+x,i[1]+y] for i in j] for j in (self.rects if rects==None else rects)]
 	def rotate(self,clockwise:int):
+		aplay("rotate")
 		self.rotation-=clockwise
 		self.rotation%=4
 		self._rotation=self.rotation
 	def rotate_oop(self,clockwise:int):
 		return self.rects[(self.rotation-clockwise)%4]
 	def die(self):
+		if self.idropped:
+			aplay("idrop")
+		else:
+			aplay("drop")
 		self.alive=False
 		self.rects=[self.rects[self.rotation]]
 		self._rotation=self.rotation
@@ -798,12 +804,16 @@ class Board():
 				deleted=True
 		if lns_count==1:
 			self.oneln+=1
+			aplay("single")
 		elif lns_count==2:
 			self.twoln+=1
+			aplay("double")
 		elif lns_count==3:
 			self.threeln+=1
+			aplay("triple")
 		elif lns_count==4:
 			self.tetrisln+=1
+			aplay("tetris")
 		elif lns_count==0:
 			pass
 		else:
@@ -921,10 +931,6 @@ class Board():
 					if self.check_pos([pos[0],pos[1]]) in (-1,-2):
 						block.move(0,-1)
 						block.die()
-						if block.idropped:
-							aplay("idrop")
-						else:
-							aplay("drop")
 						k=True
 						self.dropped+=1
 						break
@@ -1083,6 +1089,7 @@ class Button():
 			raise ValueError("Wrong position method (only -1,0,1 are allowed): %s"%(posmeth))
 		self.rect=pygame.Rect(*self.rect,width,height)
 	def press(self):
+		aplay("button")
 		self.pressed=True
 	def collideswith(self,pos:[int,int])	-> bool:
 		return self.rect.collidepoint(pos)
