@@ -11,7 +11,7 @@ drop			-	[Fin][Fin]			-	when a block gets normal-dropped
 single			-	[Fin][Fin]			-	one line cleared
 double			-	[Fin][Fin]			-	two lines cleared
 triple			-	[Fin][Fin]			-	three lines cleared
-tetris			-	[Fin][Fin]l			-	four lines cleared
+tetris			-	[Fin][Fin]			-	four lines cleared
 button			-	[Nope][Draft]		-	button gets pressed
 move			-	[Nope][Fin]			-	block moves left or right
 rotate			-	[Nope][Fin]			-	block rotates
