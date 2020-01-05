@@ -507,6 +507,8 @@ def aplay(name:str,loops:int=0,maxtime:int=0,fade_ms:int=0,pick:bool=False)->pyg
 		return None
 
 def astop(name:str,pick:bool=False):
+	if meta["audiopack"]==None:
+		return None
 	try:
 		if pick:
 			for n,sound in AUDIO.items():
@@ -1362,7 +1364,7 @@ class MainGame():
 					state=0
 				self.end(state)
 			self.board.clock.tick(conf["max_fps"])
-			if not achan.get_busy():
+			if achan!=None and not achan.get_busy():
 				achan=aplay("game",pick=True)
 		self.speed=0
 		astop("game",pick=True)
@@ -1645,7 +1647,13 @@ class MainGame():
 					button.render()
 			elif self.buttons["audio"].pressed:
 				self.buttons["audio"].pressed=False
-				meta["audiopack"]=audiopaths[(audiopaths.index(meta["audiopack"])+1)%len(audiopaths)]
+				apack=audiopaths[(audiopaths.index(meta["audiopack"])+1)%len(audiopaths)]
+				if apack==None:
+					astop("menu")
+				meta["audiopack"]=apack
+				del apack
+				load_audio()
+				aplay("menu",loops=-1)
 				self.buttons["audio"].txt="Audio:%s"%meta["audiopack"]
 				load_sprites()
 				for button in self.buttons.values():
