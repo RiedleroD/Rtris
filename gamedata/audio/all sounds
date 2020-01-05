@@ -19,8 +19,8 @@ Agameover		-	[Nope][Fin]			-	the game ends [mode A]
 Blose			-	[Nope][Fin]			-	player loses [mode B]
 Bwin			-	[Nope][Fin]			-	player wins [mode B]
 highscore		-	[Nope][Nothing]		-	player gets a highscore [either B or A]
-dropdown		-	[Nope][Nothing]		-	dropdown expands or contracts
-textbox			-	[Nope][Nothing]		-	textbox opens or closes
+dropdown		-	[Nope][Fin]			-	dropdown expands or contracts
+textbox			-	[Nope][Fin]			-	textbox opens or closes
 LANwait			-	[Nope][Nothing]		-	waiting for game to start in LAN
 LANhost			-	[Nope][Nothing]		-	when 'host in LAN' gets pressed
 ONLINEwait		-	[Nope][Nothing]		-	waiting for game to start online

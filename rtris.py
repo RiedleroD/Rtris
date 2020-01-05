@@ -122,7 +122,7 @@ debug=False
 
 COPYRIGHT_YEAR="2019"
 COPYRIGHT_HOLDER="Riedler"
-AUTHORS="Rielder and Michael Federczuk"
+AUTHORS="Riedler and Michael Federczuk"
 
 USAGE="usage: %s" % (argv[0])
 HELP="""\
@@ -517,20 +517,37 @@ def astop(name:str,pick:bool=False):
 	except Exception as e:
 		dprint("Got %s while stopping audio '%s'"%(repr(e),name))
 
-def pygame_input(txt:str="")->str:
-	char=""
-	chars=txt
-	while True:
+class pygame_input():
+	def __init__(self,txt:str=""):
+		self.chars=txt
+	def __iter__(self):
+		return self
+	def __next__(self)->str:
 		event=pygame.event.wait()
 		if event.type==pygame.KEYDOWN:
 			char=event.key
 			if char==pygame.K_BACKSPACE:
-				chars=chars[:-1]
+				self.chars=self.chars[:-1]
 			elif char in (pygame.K_ESCAPE,pygame.K_RETURN):
-				break
+				raise StopIteration()
 			else:
-				chars+=pygame.key.name(char)
-		yield chars
+				char=pygame.key.name(char)
+				if len(char)>1:
+					pass
+				else:
+					upper=False
+					#they can stack and cancel each other
+					if event.mod & pygame.KMOD_LSHIFT:
+						upper=not upper
+					if event.mod & pygame.KMOD_RSHIFT:
+						upper=not upper
+					if event.mod & pygame.KMOD_CAPS:
+						upper=not upper
+					if upper:
+						char=char.upper()
+					del upper
+					self.chars+=char
+		return self.chars
 		
 class Block():
 	def __init__(self,typ:int=random.randrange(7),x:int=0,y:int=0,rects:list=None,alive:bool=True):
@@ -1069,7 +1086,6 @@ class Button():
 		self.font=font
 		text=font.render(txt,txtcolor)[0]
 		self.surface=pygame.Surface((width,height),pygame.SRCALPHA)
-		self.render()
 		self.rect=[None,None]
 		if posmeth[0]==0:
 			self.rect[0]=x-self.surface.get_width()//2
@@ -1088,15 +1104,17 @@ class Button():
 		else:
 			raise ValueError("Wrong position method (only -1,0,1 are allowed): %s"%(posmeth))
 		self.rect=pygame.Rect(*self.rect,width,height)
+		self.render()
 	def press(self):
 		aplay("button")
 		self.pressed=True
-	def collideswith(self,pos:[int,int])	-> bool:
-		return self.rect.collidepoint(pos)
-	def render(self)	->	pygame.Surface:
+	def checkpress(self,pos:[int,int])->bool:
+		if self.rect.collidepoint(pos):
+			self.press()
+	def render(self)->pygame.Surface:
 		text=self.font.render(self.txt,self.color)[0]
-		if text.get_width()>self.surface.get_width()-8:
-			text=pygame.transform.smoothscale(text,(self.surface.get_width()-8,text.get_height()))
+		if text.get_width()>self.rect.width-8:
+			text=pygame.transform.smoothscale(text,(self.rect.width-8,text.get_height()))
 		if meta["texturepack"]:
 			self.surface.fill((0,0,0,0))
 			if meta["smoothscale"]:
@@ -1104,7 +1122,7 @@ class Button():
 			else:
 				scale=pygame.transform.scale
 			try:
-				self.surface.blit(scale(SPRITES["button"],self.surface.get_size()),(0,0))
+				self.surface.blit(scale(SPRITES["button"],self.rect.size),(0,0))
 			except KeyError:
 				notexture=True
 			else:
@@ -1113,9 +1131,70 @@ class Button():
 			notexture=True
 		if notexture:
 			self.surface.fill(self.bgcolor)
-			pygame.draw.rect(self.surface,self.color,(0,0,*self.surface.get_size()),5)
-		self.surface.blit(text,(self.surface.get_width()//2-text.get_width()//2,self.surface.get_height()//2-text.get_height()//2))
+			pygame.draw.rect(self.surface,self.color,(0,0,*self.rect.size),5)
+		self.surface.blit(text,(self.rect.width//2-text.get_width()//2,self.rect.height//2-text.get_height()//2))
 		return self.surface
+	def drawon(self,surf:pygame.Surface)->pygame.Surface:
+		surf.blit(self.surface,self.rect)
+		return surf
+
+class DropDown(Button):
+	dropped=False
+	def __init__(self,*args,**kwargs):
+		self.buttons={}
+		super().__init__(*args,**kwargs)
+	def checkpress(self,pos:[int,int]):
+		if self.dropped:
+			for button in self.buttons.values():
+				button.checkpress(pos)
+		if self.rect.collidepoint(pos):
+			self.press()
+	def press(self):
+		aplay("dropdown")
+		self.dropped=not self.dropped
+		self.pressed=True
+	def drawon(self,surf:pygame.Surface)->pygame.Surface:
+		surf.blit(self.surface,self.rect)
+		if self.dropped:
+			for button in self.buttons.values():
+				button.drawon(surf)
+		return surf
+	def addbuttons(self,btns:dict):
+		self.buttons.update(btns)
+	def __getitem__(self,item:str)->Button:
+		if item not in self.buttons.keys():
+			raise KeyError(repr(item))
+		else:
+			return self.buttons[item]
+
+class TextBox(Button):
+	def press(self):
+		aplay("textbox")
+		self.pressed=True
+	def __iter__(self):
+		txt=":".join(self.txt.split(":")[1:])
+		self.prefix=self.txt.replace(txt,"")
+		self.pinput=iter(pygame_input(txt))
+		self.txt="[%s]"%(txt)
+		self.render()
+		self.fresh=True
+		return self
+	def __next__(self)->str:
+		if self.fresh:
+			self.fresh=False
+			return self.txt
+		try:
+			inpot=next(self.pinput)
+		except StopIteration:
+			self.txt=self.prefix+self.txt[1:-1]
+			del self.prefix
+			del self.pinput
+			self.render()
+			raise StopIteration()
+		else:
+			self.txt="[%s]"%(inpot)
+			self.render()
+			return self.txt
 
 class MainGame():
 	running=False
@@ -1200,8 +1279,8 @@ class MainGame():
 				if conf["show_fps"]:
 					self.screen.blit(scorefont.render(str(int(self.board.clock.get_fps())),(255,255,255))[0],(0,0))
 		else:
-			for name,button in self.buttons.items():
-				self.screen.blit(button.surface,button.rect)
+			for button in self.buttons.values():
+				button.drawon(self.screen)
 		if show_version:
 			self.screen.blit(self.verstext,(RIGHT_SIDE-self.verstext.get_width(),BOTTOM_SIDE-self.verstext.get_height()))
 		pygame.display.flip()
@@ -1311,14 +1390,16 @@ class MainGame():
 	def selectmode(self):
 		gms=["A","B"]	#Game modes
 		self.buttons={
-			"speed":Button(x=LEFT_SIDE,y=CENTERy-5,txt="Speed: %s"%self.speed,posmeth=(1,-1)),
-			"mode":Button(x=LEFT_SIDE,y=CENTERy+5,txt="Mode: %s"%(gms[self.mode]),posmeth=(1,1)),
+			"speed":Button(x=LEFT_SIDE,y=CENTERy-5,txt="Speed:%s"%self.speed,posmeth=(1,-1)),
+			"mode":DropDown(x=LEFT_SIDE,y=CENTERy+5,txt="Mode:%s"%(gms[self.mode]),posmeth=(1,1)),
 			"back":Button(x=CENTERx-5,y=BOTTOM_SIDE,txt="Back",posmeth=(-1,-1)),
 			"start":Button(x=CENTERx+5,y=BOTTOM_SIDE,txt="Start",posmeth=(1,-1))}
-		if self.mode==1:
-			self.buttons["height"]=Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height: %s"%self.bheight,posmeth=(1,1))
-			self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Objective: %s"%self.blines,posmeth=(1,1),font=scorefont25)
-			self.buttons["bint"]=Button(x=self.buttons["blines"].rect.right+10,y=CENTERy+5,txt="Intensity: %s"%self.bheight,posmeth=(1,1),font=scorefont25)
+		bbuttons={
+			"height":Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height:%s"%self.bheight,posmeth=(1,1))}
+		bbuttons["blines"]=TextBox(x=bbuttons["height"].rect.right+10,y=CENTERy+5,txt="Objective:%s"%self.blines,posmeth=(1,1),font=scorefont25)
+		bbuttons["bint"]=Button(x=bbuttons["blines"].rect.right+10,y=CENTERy+5,txt="Intensity:%s"%self.bheight,posmeth=(1,1),font=scorefont25)
+		self.buttons["mode"].addbuttons(bbuttons)
+		del bbuttons
 		astop("menu")
 		aplay("gamemodeselect",loops=-1)
 		while True:
@@ -1341,50 +1422,39 @@ class MainGame():
 					self.speed=abs(int(self.buttons["speed"].txt[1:-1]))
 				except ValueError:
 					pass
-				self.buttons["speed"].txt="Speed: %s"%(self.speed)
+				self.buttons["speed"].txt="Speed:%s"%(self.speed)
 				self.buttons["speed"].render()
 				self.buttons["speed"].pressed=False
 			elif self.buttons["mode"].pressed:
 				self.buttons["mode"].pressed=False
 				self.mode+=1
 				self.mode%=2
-				if self.mode==0:
-					del self.buttons["height"]
-					del self.buttons["blines"]
-					del self.buttons["bint"]
-				else:
-					self.buttons["height"]=Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height: %s"%self.bheight,posmeth=(1,1))
-					self.buttons["blines"]=Button(x=self.buttons["height"].rect.right+10,y=CENTERy+5,txt="Objective: %s"%self.blines,posmeth=(1,1),font=scorefont25)
-					self.buttons["bint"]=Button(x=self.buttons["blines"].rect.right+10,y=CENTERy+5,txt="Intensity: %s"%self.bint,posmeth=(1,1),font=scorefont25)
-				self.buttons["mode"].txt="Mode: %s"%(gms[self.mode])
+				self.buttons["mode"].txt="Mode:%s"%(gms[self.mode])
 				self.buttons["mode"].render()
-			elif self.mode==1 and self.buttons["height"].pressed:
-				self.buttons["height"].pressed=False
+			elif self.mode==1 and self.buttons["mode"]["height"].pressed:
+				self.buttons["mode"]["height"].pressed=False
 				self.bheight%=17
 				self.bheight+=1
-				self.buttons["height"].txt="Height: %s"%self.bheight
-				self.buttons["height"].render()
-			elif self.mode==1 and self.buttons["blines"].pressed:
-				self.buttons["blines"].pressed=False
-				self.buttons["blines"].txt="[%s]"%self.blines
-				self.buttons["blines"].render()
+				self.buttons["mode"]["height"].txt="Height:%s"%self.bheight
+				self.buttons["mode"]["height"].render()
+			elif self.mode==1 and self.buttons["mode"]["blines"].pressed:
+				self.buttons["mode"]["blines"].pressed=False
 				self.draw()
-				for inpot in pygame_input(str(self.blines)):
-					self.buttons["blines"].txt="[%s]"%inpot
-					self.buttons["blines"].render()
+				txt=self.buttons["mode"]["blines"].txt
+				for inpot in self.buttons["mode"]["blines"]:
 					self.draw()
 				try:
-					self.blines=(lambda blines:blines if blines>0 else self.blines)(abs(int(self.buttons["blines"].txt[1:-1])))
+					self.blines=abs(int(":".join(self.buttons["mode"]["blines"].txt.split(":")[1:])))
 				except ValueError:
-					pass
-				self.buttons["blines"].txt="Objective: %s"%self.blines
-				self.buttons["blines"].render()
-			elif self.mode==1 and self.buttons["bint"].pressed:
-				self.buttons["bint"].pressed=False
+					self.buttons["mode"]["blines"].txt=txt
+					self.buttons["mode"]["blines"].render()
+				del txt
+			elif self.mode==1 and self.buttons["mode"]["bint"].pressed:
+				self.buttons["mode"]["bint"].pressed=False
 				self.bint%=9
 				self.bint+=1
-				self.buttons["bint"].txt="Intensity: %s"%self.bint
-				self.buttons["bint"].render()
+				self.buttons["mode"]["bint"].txt="Intensity:%s"%self.bint
+				self.buttons["mode"]["bint"].render()
 	def settings(self):
 		spritepath=os.path.join(datapath,"sprites")
 		spritepaths=[path for path in os.listdir(spritepath) if os.path.isdir(os.path.join(spritepath,path))]
@@ -1417,7 +1487,7 @@ class MainGame():
 			fpstxt="Show FPS"
 		self.buttons["fullscreen"]=Button(x=RIGHT_SIDE,y=TOP_SIDE,txt=fulscrntxt,posmeth=(-1,1))
 		self.buttons["show_fps"]=Button(x=RIGHT_SIDE,y=self.buttons["fullscreen"].rect.bottom+10,txt=fpstxt,posmeth=(-1,1))
-		self.buttons["max_fps"]=Button(x=RIGHT_SIDE,y=self.buttons["show_fps"].rect.bottom+10,txt="FPS: %s"%(conf["max_fps"]),posmeth=(-1,1))
+		self.buttons["max_fps"]=TextBox(x=RIGHT_SIDE,y=self.buttons["show_fps"].rect.bottom+10,txt="FPS:%s"%(conf["max_fps"]),posmeth=(-1,1))
 		if conf["update"]:
 			updtcolr=(0,255,0)
 		else:
@@ -1543,20 +1613,16 @@ class MainGame():
 					self.buttons["show_fps"].txt="Hide FPS"
 				self.buttons["show_fps"].render()
 			elif self.buttons["max_fps"].pressed:
-				self.buttons["max_fps"].txt="[%s]"%(conf["max_fps"])
-				self.buttons["max_fps"].render()
+				self.buttons["max_fps"].pressed=False
 				self.draw(show_version=True)
-				for inpot in pygame_input(str(conf["max_fps"])):
-					self.buttons["max_fps"].txt="[%s]"%(inpot)
-					self.buttons["max_fps"].render()
+				txt=self.buttons["max_fps"].txt
+				for inpot in self.buttons["max_fps"]:
 					self.draw(show_version=True)
 				try:
-					conf["max_fps"]=abs(int(self.buttons["max_fps"].txt[1:-1]))
+					conf["max_fps"]=abs(int(":".join(self.buttons["max_fps"].txt.split(":")[1:])))
 				except ValueError:
-					pass
-				self.buttons["max_fps"].txt="FPS: %s"%(conf["max_fps"])
-				self.buttons["max_fps"].render()
-				self.buttons["max_fps"].pressed=False
+					self.buttons["max_fps"].txt=txt
+				del txt
 			elif self.buttons["update"].pressed:
 				self.buttons["update"].pressed=False
 				conf["update"]=not conf["update"]
@@ -1595,8 +1661,7 @@ class MainGame():
 		event=pygame.event.wait()
 		if event.type==pygame.MOUSEBUTTONUP and event.button==1:
 			for name,button in self.buttons.items():
-				if button.collideswith(event.pos):
-					button.press()
+				button.checkpress(event.pos)
 		elif event.type==pygame.KEYDOWN and event.key==strg["exit"]:
 			return True
 		return False
