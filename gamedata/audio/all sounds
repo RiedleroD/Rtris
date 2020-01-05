@@ -8,10 +8,10 @@ gamemodeselect	-	[Nope][Fin]			-	background music in the game mode select screen
 game-***		-	[Draft][Fin]		-	background music in the game
 idrop			-	[Draft][Fin]		-	when a block gets instadropped
 drop			-	[Fin][Fin]			-	when a block gets normal-dropped
-single			-	[Nope][Fin]			-	one line cleared
-double			-	[Nope][Fin]			-	two lines cleared
-triple			-	[Nope][Fin]			-	three lines cleared
-tetris			-	[Nope][Fin]			-	four lines cleared
+single			-	[Fin][Fin]			-	one line cleared
+double			-	[Fin][Fin]			-	two lines cleared
+triple			-	[Fin][Fin]			-	three lines cleared
+tetris			-	[Fin][Fin]l			-	four lines cleared
 button			-	[Nope][Draft]		-	button gets pressed
 move			-	[Nope][Fin]			-	block moves left or right
 rotate			-	[Nope][Fin]			-	block rotates
