@@ -694,7 +694,7 @@ class Block():
 		elif rects!=None:
 			raise ValueError("rects can't be %s, it has to be a list with a length of 4.")
 		if not self.alive:
-			self.die()
+			self.die(silent=True)
 	def rectmatrix(self,matrix:list):
 		return [[[matrix[j][i][0]+self.x,matrix[j][i][1]+self.y] for i in range(4)] for j in range(4)]
 	def get_poss(self):
@@ -737,11 +737,12 @@ class Block():
 		self._rotation=self.rotation
 	def rotate_oop(self,clockwise:int):
 		return self.rects[(self.rotation-clockwise)%4]
-	def die(self):
-		if self.idropped:
-			aplay("idrop")
-		else:
-			aplay("drop")
+	def die(self,silent:bool=False):
+		if not silent:
+			if self.idropped:
+				aplay("idrop")
+			else:
+				aplay("drop")
 		self.alive=False
 		self.rects=[self.rects[self.rotation]]
 		self._rotation=self.rotation
