@@ -1067,15 +1067,30 @@ def get_rect(x:float=0,y:float=0,width:float=1,height:float=1):
 		return pygame.Rect(math.ceil(x*BLOCK_SIZE),math.ceil(y*BLOCK_SIZE),math.ceil(width*BLOCK_SIZE),math.ceil(height*BLOCK_SIZE))
 
 def generate_mush(height:int=4,intensity:int=7):
-	blocks=[[],[],[],[],[],[],[]]
 	assert intensity<10 and intensity>0,"Mush intensity can only be smaller than 10 and bigger than 0"
 	assert height<18 and height>0,"Mush height can only be smaller than 18 and bigger than 0."
-	poss=[[x,y] for x in range(10) for y in range(20-height,20)]
-	for _pos in range(0,-10+height*10,10):
-		del poss[_pos+random.randrange(0,10)]
-	for _rect in range(intensity*height):
-		blocks[random.randrange(7)].append(poss.pop(random.randrange(len(poss))))
-	return [Block(typ=i,rects=[rects],alive=False) for i,rects in enumerate(blocks) if len(rects)!=0]
+	blocks=[[None for i in range(10)] for j in range(height)]
+	for i in range(height*intensity):
+		while True:
+			y=random.randrange(height)
+			found=0
+			for block in blocks[y]:
+				if block!=None:
+					found+=1
+			if found>8:
+				continue
+			else:
+				while True:
+					x=random.randrange(10)
+					if blocks[y][x]!=None:
+						continue
+					else:
+						break
+			break
+		typ=random.randrange(7)
+		blocks[y][x]=typ
+	dprint("Generated mush:\n","\n".join(reversed(["".join("#" if block!=None else " " for block in row) for row in blocks])))
+	return [Block(typ=blocks[y][x],rects=[[[x,19-y]]],alive=False) for y in range(len(blocks)) for x in range(10) if blocks[y][x]!=None]
 			
 
 class Button():
