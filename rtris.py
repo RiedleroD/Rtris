@@ -1341,10 +1341,11 @@ class MainGame():
 					elif event.key==strg["rot1"]:
 						self.board.rotate_alive(-1)
 					elif event.key==strg["pause"] or event.key==pygame.K_PAUSE:
-						if self.board.paused:
-							achan.unpause()
-						else:
-							achan.pause()
+						if achan!=None:
+							if self.board.paused:
+								achan.unpause()
+							else:
+								achan.pause()
 						self.board.pause()
 					elif event.key==strg["screenshot"]:
 						succ,fp=pgshot.dumppg(self.screen,os.path.join(curpath,"screenshots"))
@@ -1400,8 +1401,12 @@ class MainGame():
 		bbuttons={
 			"height":Button(x=self.buttons["mode"].rect.right+10,y=CENTERy+5,txt="Height:%s"%self.bheight,posmeth=(1,1))}
 		bbuttons["blines"]=TextBox(x=bbuttons["height"].rect.right+10,y=CENTERy+5,txt="Objective:%s"%self.blines,posmeth=(1,1),font=scorefont25)
-		bbuttons["bint"]=Button(x=bbuttons["blines"].rect.right+10,y=CENTERy+5,txt="Intensity:%s"%self.bheight,posmeth=(1,1),font=scorefont25)
+		bbuttons["bint"]=Button(x=bbuttons["blines"].rect.right+10,y=CENTERy+5,txt="Intensity:%s"%self.bint,posmeth=(1,1),font=scorefont25)
 		self.buttons["mode"].addbuttons(bbuttons)
+		if self.mode==1:
+			self.buttons["mode"].dropped=True
+		else:
+			self.buttons["mode"].dropped=False
 		del bbuttons
 		astop("menu")
 		aplay("gamemodeselect",loops=-1)
