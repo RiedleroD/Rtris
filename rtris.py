@@ -120,7 +120,7 @@ for setting,default in defmeta.items():
 update=conf["update"]
 debug=False
 
-COPYRIGHT_YEAR="2019"
+COPYRIGHT_YEAR="2020"
 COPYRIGHT_HOLDER="Riedler"
 AUTHORS="Riedler and Michael Federczuk"
 
