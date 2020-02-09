@@ -20,9 +20,9 @@ textbox-write	-	[Fin][Fin]			-	char got written in textbox
 textbox-open	-	[Fin][Fin]			-	textbox opens (or StrgButton opens)
 move			-	[Nope][Fin]			-	block moves left or right
 rotate			-	[Nope][Fin]			-	block rotates
-Agameover		-	[Nope][Fin]			-	the game ends [mode A]
-Blose			-	[Nope][Fin]			-	player loses [mode B]
-Bwin			-	[Nope][Fin]			-	player wins [mode B]
+Agameover		-	[Fin][Fin]			-	the game ends [mode A]
+Blose			-	[Fin][Fin]			-	player loses [mode B]
+Bwin			-	[FIn][Fin]			-	player wins [mode B]
 highscore		-	[Nope][Nothing]		-	player gets a highscore [either B or A]
 LANwait			-	[Nope][Nothing]		-	waiting for game to start in LAN
 LANhost			-	[Nope][Nothing]		-	when 'host in LAN' gets pressed
