@@ -525,30 +525,32 @@ class pygame_input():
 	def __iter__(self):
 		return self
 	def __next__(self)->str:
-		event=pygame.event.wait()
-		if event.type==pygame.KEYDOWN:
-			char=event.key
-			if char==pygame.K_BACKSPACE:
-				self.chars=self.chars[:-1]
-			elif char in (pygame.K_ESCAPE,pygame.K_RETURN):
-				raise StopIteration()
+		while True:
+			event=pygame.event.wait()
+			if event.type==pygame.KEYDOWN:
+				break
+		char=event.key
+		if char==pygame.K_BACKSPACE:
+			self.chars=self.chars[:-1]
+		elif char in (pygame.K_ESCAPE,pygame.K_RETURN):
+			raise StopIteration()
+		else:
+			char=pygame.key.name(char)
+			if len(char)>1:
+				pass
 			else:
-				char=pygame.key.name(char)
-				if len(char)>1:
-					pass
-				else:
-					upper=False
-					#they can stack and cancel each other
-					if event.mod & pygame.KMOD_LSHIFT:
-						upper=not upper
-					if event.mod & pygame.KMOD_RSHIFT:
-						upper=not upper
-					if event.mod & pygame.KMOD_CAPS:
-						upper=not upper
-					if upper:
-						char=char.upper()
-					del upper
-					self.chars+=char
+				upper=False
+				#they can stack and cancel each other
+				if event.mod & pygame.KMOD_LSHIFT:
+					upper=not upper
+				if event.mod & pygame.KMOD_RSHIFT:
+					upper=not upper
+				if event.mod & pygame.KMOD_CAPS:
+					upper=not upper
+				if upper:
+					char=char.upper()
+				del upper
+				self.chars+=char
 		return self.chars
 		
 class Block():
@@ -1168,8 +1170,11 @@ class DropDown(Button):
 		if self.rect.collidepoint(pos):
 			self.press()
 	def press(self):
-		aplay("dropdown")
 		self.dropped=not self.dropped
+		if self.dropped:
+			aplay("dropdown-open")
+		else:
+			aplay("dropdown-close")
 		self.pressed=True
 	def drawon(self,surf:pygame.Surface)->pygame.Surface:
 		surf.blit(self.surface,self.rect)
@@ -1187,7 +1192,7 @@ class DropDown(Button):
 
 class TextBox(Button):
 	def press(self):
-		aplay("textbox")
+		aplay("textbox-open")
 		self.pressed=True
 	def __iter__(self):
 		txt=":".join(self.txt.split(":")[1:])
@@ -1204,15 +1209,38 @@ class TextBox(Button):
 		try:
 			inpot=next(self.pinput)
 		except StopIteration:
+			aplay("textbox-close")
 			self.txt=self.prefix+self.txt[1:-1]
 			del self.prefix
 			del self.pinput
 			self.render()
 			raise StopIteration()
 		else:
+			aplay("textbox-write")
 			self.txt="[%s]"%(inpot)
 			self.render()
 			return self.txt
+
+class StrgButton(Button):
+	def __init__(self,*args,key:str,**kwargs):
+		super().__init__(*args,**kwargs)
+		self.key=key
+		self._txt=self.txt
+	def press(self):
+		aplay("textbox-open")
+		self.pressed=True
+		self._txt=self.txt
+		self.txt="[%s]"%(pygame.key.name(strg[self.key]))
+		self.render()
+	def doit(self,game):
+		game.draw(show_version=True)
+		button=game.wait4buttonpress()
+		if button!=None:
+			strg[self.key]=button.key
+		aplay("textbox-close")
+		self.pressed=False
+		self.txt=self._txt
+		self.render()
 
 class MainGame():
 	running=False
@@ -1409,7 +1437,7 @@ class MainGame():
 	def selectmode(self):
 		gms=["A","B"]	#Game modes
 		self.buttons={
-			"speed":Button(x=LEFT_SIDE,y=CENTERy-5,txt="Speed:%s"%self.speed,posmeth=(1,-1)),
+			"speed":TextBox(x=LEFT_SIDE,y=CENTERy-5,txt="Speed:%s"%self.speed,posmeth=(1,-1)),
 			"mode":DropDown(x=LEFT_SIDE,y=CENTERy+5,txt="Mode:%s"%(gms[self.mode]),posmeth=(1,1)),
 			"back":Button(x=CENTERx-5,y=BOTTOM_SIDE,txt="Back",posmeth=(-1,-1)),
 			"start":Button(x=CENTERx+5,y=BOTTOM_SIDE,txt="Start",posmeth=(1,-1))}
@@ -1434,20 +1462,17 @@ class MainGame():
 				astop("gamemodeselect")
 				return True
 			elif self.buttons["speed"].pressed:
-				self.buttons["speed"].txt="[%s]"%(self.speed)
-				self.buttons["speed"].render()
+				self.buttons["speed"].pressed=False
 				self.draw()
-				for inpot in pygame_input(str(self.speed)):
-					self.buttons["speed"].txt="[%s]"%(inpot)
-					self.buttons["speed"].render()
+				txt=self.buttons["speed"].txt
+				for inpot in self.buttons["speed"]:
 					self.draw()
 				try:
-					self.speed=abs(int(self.buttons["speed"].txt[1:-1]))
+					self.speed=abs(int(":".join(self.buttons["speed"].txt.split(":")[1:])))
 				except ValueError:
-					pass
-				self.buttons["speed"].txt="Speed:%s"%(self.speed)
-				self.buttons["speed"].render()
-				self.buttons["speed"].pressed=False
+					self.buttons["mode"]["blines"].txt=txt
+					self.buttons["mode"]["blines"].render()
+				del txt
 			elif self.buttons["mode"].pressed:
 				self.buttons["mode"].pressed=False
 				self.mode+=1
@@ -1487,15 +1512,15 @@ class MainGame():
 		audiopaths.append(None)
 		self.buttons={
 			"back":Button(x=CENTERx,y=BOTTOM_SIDE,txt="Back",posmeth=(0,-1)),
-			"strgleft":Button(x=LEFT_SIDE,y=TOP_SIDE,txt="Left",posmeth=(1,1))}
-		self.buttons["strgright"]=Button(x=LEFT_SIDE,y=self.buttons["strgleft"].rect.bottom+10,txt="Right",posmeth=(1,1))
-		self.buttons["strgdrop"]=Button(x=LEFT_SIDE,y=self.buttons["strgright"].rect.bottom+10,txt="Drop",posmeth=(1,1))
-		self.buttons["strgidrop"]=Button(x=LEFT_SIDE,y=self.buttons["strgdrop"].rect.bottom+10,txt="Inst. Drop",posmeth=(1,1))
-		self.buttons["strgrot"]=Button(x=LEFT_SIDE,y=self.buttons["strgidrop"].rect.bottom+10,txt="Rotate \u21c0",posmeth=(1,1))
-		self.buttons["strgrot1"]=Button(x=LEFT_SIDE,y=self.buttons["strgrot"].rect.bottom+10,txt="Rotate \u21bc",posmeth=(1,1))
-		self.buttons["strgexit"]=Button(x=LEFT_SIDE,y=self.buttons["strgrot1"].rect.bottom+10,txt="Exit/Back",posmeth=(1,1))
-		self.buttons["strgpause"]=Button(x=LEFT_SIDE,y=self.buttons["strgexit"].rect.bottom+10,txt="Pause",posmeth=(1,1))
-		self.buttons["strgsshot"]=Button(x=LEFT_SIDE,y=self.buttons["strgpause"].rect.bottom+10,txt="Screenshot",posmeth=(1,1))
+			"strgleft":StrgButton(x=LEFT_SIDE,y=TOP_SIDE,txt="Left",posmeth=(1,1),key="left")}
+		self.buttons["strgright"]=StrgButton(x=LEFT_SIDE,y=self.buttons["strgleft"].rect.bottom+10,txt="Right",posmeth=(1,1),key="right")
+		self.buttons["strgdrop"]=StrgButton(x=LEFT_SIDE,y=self.buttons["strgright"].rect.bottom+10,txt="Drop",posmeth=(1,1),key="drop")
+		self.buttons["strgidrop"]=StrgButton(x=LEFT_SIDE,y=self.buttons["strgdrop"].rect.bottom+10,txt="Inst. Drop",posmeth=(1,1),key="idrop")
+		self.buttons["strgrot"]=StrgButton(x=LEFT_SIDE,y=self.buttons["strgidrop"].rect.bottom+10,txt="Rotate \u21c0",posmeth=(1,1),key="rot")
+		self.buttons["strgrot1"]=StrgButton(x=LEFT_SIDE,y=self.buttons["strgrot"].rect.bottom+10,txt="Rotate \u21bc",posmeth=(1,1),key="rot1")
+		self.buttons["strgexit"]=StrgButton(x=LEFT_SIDE,y=self.buttons["strgrot1"].rect.bottom+10,txt="Exit/Back",posmeth=(1,1),key="exit")
+		self.buttons["strgpause"]=StrgButton(x=LEFT_SIDE,y=self.buttons["strgexit"].rect.bottom+10,txt="Pause",posmeth=(1,1),key="pause")
+		self.buttons["strgsshot"]=StrgButton(x=LEFT_SIDE,y=self.buttons["strgpause"].rect.bottom+10,txt="Screenshot",posmeth=(1,1),key="screenshot")
 		if conf["fullscreen"]:
 			fulscrntxt="Fullscreen"
 		else:
@@ -1529,95 +1554,23 @@ class MainGame():
 			if self.checkbuttons() or self.buttons["back"].pressed:
 				break
 			if self.buttons["strgleft"].pressed:
-				self.buttons["strgleft"].txt="[%s]"%(pygame.key.name(strg["left"]))
-				self.buttons["strgleft"].render()
-				self.draw(show_version=True)
-				button=self.wait4buttonpress()
-				if button!=None:
-					strg["left"]=button.key
-				self.buttons["strgleft"].pressed=False
-				self.buttons["strgleft"].txt="Left"
-				self.buttons["strgleft"].render()
+				self.buttons["strgleft"].doit(self)
 			elif self.buttons["strgright"].pressed:
-				self.buttons["strgright"].txt="[%s]"%(pygame.key.name(strg["right"]))
-				self.buttons["strgright"].render()
-				self.draw(show_version=True)
-				button=self.wait4buttonpress()
-				if button!=None:
-					strg["right"]=button.key
-				self.buttons["strgright"].pressed=False
-				self.buttons["strgright"].txt="Right"
-				self.buttons["strgright"].render()
+				self.buttons["strgright"].doit(self)
 			elif self.buttons["strgdrop"].pressed:
-				self.buttons["strgdrop"].txt="[%s]"%(pygame.key.name(strg["drop"]))
-				self.buttons["strgdrop"].render()
-				self.draw(show_version=True)
-				button=self.wait4buttonpress()
-				if button!=None:
-					strg["drop"]=button.key
-				self.buttons["strgdrop"].pressed=False
-				self.buttons["strgdrop"].txt="Drop"
-				self.buttons["strgdrop"].render()
+				self.buttons["strgdrop"].doit(self)
 			elif self.buttons["strgidrop"].pressed:
-				self.buttons["strgidrop"].txt="[%s]"%(pygame.key.name(strg["idrop"]))
-				self.buttons["strgidrop"].render()
-				self.draw(show_version=True)
-				button=self.wait4buttonpress()
-				if button!=None:
-					strg["idrop"]=button.key
-				self.buttons["strgidrop"].pressed=False
-				self.buttons["strgidrop"].txt="Inst. Drop"
-				self.buttons["strgidrop"].render()
+				self.buttons["strgidrop"].doit(self)
 			elif self.buttons["strgrot"].pressed:
-				self.buttons["strgrot"].txt="[%s]"%(pygame.key.name(strg["rot"]))
-				self.buttons["strgrot"].render()
-				self.draw(show_version=True)
-				button=self.wait4buttonpress()
-				if button!=None:
-					strg["rot"]=button.key
-				self.buttons["strgrot"].pressed=False
-				self.buttons["strgrot"].txt="Rotate \u21c0"
-				self.buttons["strgrot"].render()
+				self.buttons["strgrot"].doit(self)
 			elif self.buttons["strgrot1"].pressed:
-				self.buttons["strgrot1"].txt="[%s]"%(pygame.key.name(strg["rot1"]))
-				self.buttons["strgrot1"].render()
-				self.draw(show_version=True)
-				button=self.wait4buttonpress()
-				if button!=None:
-					strg["rot1"]=button.key
-				self.buttons["strgrot1"].pressed=False
-				self.buttons["strgrot1"].txt="Rotate \u21bc"
-				self.buttons["strgrot1"].render()
+				self.buttons["strgrot1"].doit(self)
 			elif self.buttons["strgexit"].pressed:
-				self.buttons["strgexit"].txt="[%s]"%(pygame.key.name(strg["exit"]))
-				self.buttons["strgexit"].render()
-				self.draw(show_version=True)
-				button=self.wait4buttonpress()
-				if button!=None:
-					strg["exit"]=button.key
-				self.buttons["strgexit"].pressed=False
-				self.buttons["strgexit"].txt="Exit/Back"
-				self.buttons["strgexit"].render()
+				self.buttons["strgexit"].doit(self)
 			elif self.buttons["strgpause"].pressed:
-				self.buttons["strgpause"].txt="[%s]"%(pygame.key.name(strg["pause"]))
-				self.buttons["strgpause"].render()
-				self.draw(show_version=True)
-				button=self.wait4buttonpress()
-				if button!=None:
-					strg["pause"]=button.key
-				self.buttons["strgpause"].pressed=False
-				self.buttons["strgpause"].txt="Pause"
-				self.buttons["strgpause"].render()
+				self.buttons["strgpause"].doit(self)
 			elif self.buttons["strgsshot"].pressed:
-				self.buttons["strgsshot"].txt="[%s]"%(pygame.key.name(strg["screenshot"]))
-				self.buttons["strgsshot"].render()
-				self.draw(show_version=True)
-				button=self.wait4buttonpress()
-				if button!=None:
-					strg["screenshot"]=button.key
-				self.buttons["strgsshot"].pressed=False
-				self.buttons["strgsshot"].txt="Screenshot"
-				self.buttons["strgsshot"].render()
+				self.buttons["strgsshot"].doit(self)
 			elif self.buttons["fullscreen"].pressed:
 				self.buttons["fullscreen"].pressed=False
 				conf["fullscreen"]=not conf["fullscreen"]

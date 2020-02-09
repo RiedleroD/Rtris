@@ -5,22 +5,25 @@ name			-	[File][Implement.]	-	Explanation when the sound gets played
 ————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 menu			-	[Draft][Fin]		-	background music in the menu
 gamemodeselect	-	[Nope][Fin]			-	background music in the game mode select screen
-game-***		-	[Draft][Fin]		-	background music in the game
-idrop			-	[Draft][Fin]		-	when a block gets instadropped
+game-***		-	[Fin][Fin]			-	background music in the game
+idrop			-	[Fin][Fin]			-	when a block gets instadropped
 drop			-	[Fin][Fin]			-	when a block gets normal-dropped
 single			-	[Fin][Fin]			-	one line cleared
 double			-	[Fin][Fin]			-	two lines cleared
 triple			-	[Fin][Fin]			-	three lines cleared
 tetris			-	[Fin][Fin]			-	four lines cleared
-button			-	[Nope][Draft]		-	button gets pressed
+button			-	[Fin][Fin]			-	button gets pressed
+dropdown-close	-	[Fin][Fin]			-	dropdown contracts
+dropdown-open	-	[Fin][Fin]			-	dropdown expands
+textbox-close	-	[Fin][Fin]			-	textbox closes (or StrgButton closes)
+textbox-write	-	[Fin][Fin]			-	char got written in textbox
+textbox-open	-	[Fin][Fin]			-	textbox opens (or StrgButton opens)
 move			-	[Nope][Fin]			-	block moves left or right
 rotate			-	[Nope][Fin]			-	block rotates
 Agameover		-	[Nope][Fin]			-	the game ends [mode A]
 Blose			-	[Nope][Fin]			-	player loses [mode B]
 Bwin			-	[Nope][Fin]			-	player wins [mode B]
 highscore		-	[Nope][Nothing]		-	player gets a highscore [either B or A]
-dropdown		-	[Nope][Fin]			-	dropdown expands or contracts
-textbox			-	[Nope][Fin]			-	textbox opens or closes
 LANwait			-	[Nope][Nothing]		-	waiting for game to start in LAN
 LANhost			-	[Nope][Nothing]		-	when 'host in LAN' gets pressed
 ONLINEwait		-	[Nope][Nothing]		-	waiting for game to start online
