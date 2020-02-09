@@ -4,7 +4,7 @@ If the file name ends with -*** that means that anything with the name, a dash a
 name			-	[File][Implement.]	-	Explanation when the sound gets played
 ————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 menu			-	[Draft][Fin]		-	background music in the menu
-gamemodeselect	-	[Nope][Fin]			-	background music in the game mode select screen
+gamemodeselect	-	[Fin][Fin]			-	background music in the game mode select screen
 game-***		-	[Fin][Fin]			-	background music in the game
 idrop			-	[Fin][Fin]			-	when a block gets instadropped
 drop			-	[Fin][Fin]			-	when a block gets normal-dropped

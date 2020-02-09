@@ -499,9 +499,10 @@ def aplay(name:str,loops:int=0,maxtime:int=0,fade_ms:int=0,pick:bool=False)->pyg
 		return None
 	try:
 		if pick:
-			return random.choice([sound for n,sound in AUDIO.items() if n.startswith(name+"-")]).play(loops,maxtime,fade_ms)
+			sound=random.choice([sound for n,sound in AUDIO.items() if n.startswith(name+"-")])
 		else:
-			return AUDIO[name].play(loops,maxtime,fade_ms)
+			sound=AUDIO[name]
+		return sound.play(loops,maxtime,fade_ms)
 	except Exception as e:
 		dprint("Got %s while playing audio '%s'"%(repr(e),name))
 		return None
