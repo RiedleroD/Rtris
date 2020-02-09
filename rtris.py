@@ -381,6 +381,7 @@ pygame.mixer.pre_init(22050,-16, 2, 512)
 pygame.init()
 pygame.freetype.init()
 pygame.mixer.init(22050,-16,2,512)
+pygame.mixer.set_num_channels(32)
 #I'm not particularly proud of this section...
 try:
 	from ctypes import windll	#windows specific
