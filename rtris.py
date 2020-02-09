@@ -727,7 +727,8 @@ class Block():
 				return False
 		return True
 	def move(self,x:int,y:int):
-		aplay("move")
+		if not self.idropped:
+			aplay("move")
 		for j in range(len(self.rects)):
 			for i in range(len(self.rects[j])):
 				self.rects[j][i][0]+=x
@@ -1623,11 +1624,8 @@ class MainGame():
 					button.render()
 			elif self.buttons["audio"].pressed:
 				self.buttons["audio"].pressed=False
-				apack=audiopaths[(audiopaths.index(meta["audiopack"])+1)%len(audiopaths)]
-				if apack==None:
-					astop("menu")
-				meta["audiopack"]=apack
-				del apack
+				astop("menu")
+				meta["audiopack"]=audiopaths[(audiopaths.index(meta["audiopack"])+1)%len(audiopaths)]
 				load_audio()
 				aplay("menu",loops=-1)
 				self.buttons["audio"].txt="Audio:%s"%meta["audiopack"]

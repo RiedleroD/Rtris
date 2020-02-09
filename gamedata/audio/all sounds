@@ -18,11 +18,11 @@ dropdown-open	-	[Fin][Fin]			-	dropdown expands
 textbox-close	-	[Fin][Fin]			-	textbox closes (or StrgButton closes)
 textbox-write	-	[Fin][Fin]			-	char got written in textbox
 textbox-open	-	[Fin][Fin]			-	textbox opens (or StrgButton opens)
-move			-	[Nope][Fin]			-	block moves left or right
-rotate			-	[Nope][Fin]			-	block rotates
+move			-	[Fin][Fin]			-	block moves left or right
+rotate			-	[Fin][Fin]			-	block rotates
 Agameover		-	[Fin][Fin]			-	the game ends [mode A]
 Blose			-	[Fin][Fin]			-	player loses [mode B]
-Bwin			-	[FIn][Fin]			-	player wins [mode B]
+Bwin			-	[Fin][Fin]			-	player wins [mode B]
 highscore		-	[Nope][Nothing]		-	player gets a highscore [either B or A]
 LANwait			-	[Nope][Nothing]		-	waiting for game to start in LAN
 LANhost			-	[Nope][Nothing]		-	when 'host in LAN' gets pressed
@@ -33,3 +33,7 @@ ONLANthird		-	[Nope][Nothing]		-	when you get 3rd place either online or in LAN
 ONLANlost		-	[Nope][Nothing]		-	when you get 4th place or worse either online or in LAN
 ONLANlast		-	[Nope][Nothing]		-	when you get last place (not 1st-3rd place) either online or in LAN
 ————————————————————————————————————————————————————————————————————————————————————————————————————————————————
+
+NOTE:
+I have concluded that 'move' and 'rotate' are unnecessary.
+They still work if someone makes an audiopack and puts them in, but I've removed them from my default audiopack.
