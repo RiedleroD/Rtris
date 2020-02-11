@@ -440,7 +440,7 @@ scorefont=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-appl
 scorefont25=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",25)
 versfont=pygame.freetype.SysFont("Linux Biolinum O,Arial,EmojiOne,Symbola,-apple-system",15)
 def load_sprites():
-	global spritepath,SPRITES,TEMPSAVE,meta
+	global spritepath,SPRITES,TEMPSAVE,meta,screen
 	SPRITES={"blocks":{}}
 	TEMPSAVE={}	#space for mostly transformed sprites
 	bimg=None
@@ -457,9 +457,15 @@ def load_sprites():
 				name,ext=os.path.splitext(fname)
 				f=os.path.join(root,fname)
 				if ext.lower()==".png":
+					screen.fill(BLACK)
+					screen.blit(versfont.render("Loading texture "+fname+"...",WHITE)[0],(0,0))
+					pygame.display.flip()
 					SPRITES[name]=pygame.image.load(f)
 					sprtpaths.append(f.replace(curpath,"."))
 				elif ext.lower()==".svg":
+					screen.fill(BLACK)
+					screen.blit(versfont.render("Loading texture "+fname+"...",WHITE)[0],(0,0))
+					pygame.display.flip()
 					SPRITES[name]=load_svg(f)
 					sprtpaths.append(f.replace(curpath,"."))
 				if name.startswith("block_") and bimg==None:
@@ -470,6 +476,12 @@ def load_sprites():
 		spritepath=None
 	if bimg!=None:
 		meta["bimgsize"]=bimg
+	try:
+		screen.blit(SPRITES["loading"],(0,0))
+	except KeyError:
+		dprint("Couldn't find loading sprite")
+	else:
+		pygame.display.flip()
 load_sprites()
 def load_audio():
 	global audiopath,AUDIO,meta
@@ -486,6 +498,9 @@ def load_audio():
 			for fname in files:
 				name,ext=os.path.splitext(fname)
 				if ext.lower() in (".wav",".ogg"):
+					screen.fill(BLACK)
+					screen.blit(versfont.render("Loading sound "+fname+"...",WHITE)[0],(0,0))
+					pygame.display.flip()
 					f=os.path.join(root,fname)
 					AUDIO[name]=pygame.mixer.Sound(f)
 					audpaths.append(f.replace(curpath,"."))
